@@ -7,15 +7,15 @@
 #define SPN_KEY_LENGTH sNum * sBits + (RoundNum ) * 4
 #include "..\gmp.h" 
 
-typedef unsigned long long spn_Text;	//SPNÊı¾İµ¥Î»
-typedef unsigned char mapping;	//S/PºĞÓ³Éä
+typedef unsigned long long spn_Text;	//SPNæ•°æ®å•ä½
+typedef unsigned char mapping;	//S/Pç›’æ˜ å°„
 
-typedef mpz_t MainKey;	//Ö÷ÃÜÔ¿
-typedef spn_Text RoundKey;	//ÂÖÃÜÔ¿
+typedef mpz_t MainKey;	//ä¸»å¯†é’¥
+typedef spn_Text RoundKey;	//è½®å¯†é’¥
 typedef struct {
 	MainKey initKey;
 	RoundKey roundKey[RoundNum + 1];
-}Key;	//SPNÃÜÔ¿
+}Key;	//SPNå¯†é’¥
 
 Key spn_Key;
 mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];

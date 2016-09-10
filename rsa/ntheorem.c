@@ -103,7 +103,7 @@ bool Miller_Rabin(mpz_t n)
 	gmp_randstate_t state;
 	int k = 0, i;
 	mpz_t m, a, b;
-	gmp_randinit_lc_2exp_size(state, 128);	//ÉèÖÃËæ»úÊı×´Ì¬state
+	gmp_randinit_lc_2exp_size(state, 128);	//è®¾ç½®éšæœºæ•°çŠ¶æ€state
 	gmp_randseed_ui(state, (unsigned long)time(NULL));
 	mpz_inits(m, a, b, NULL);
 	mpz_sub_ui(m, n, 1);	//m = n- 1

@@ -94,14 +94,14 @@ int keyCracker(spn_Text *p1, spn_Text *p2, int num)
 	printf("Key : %x\n", key);
 	printf("time consumed : %ld ms", t2 - t1);
 	getchar();
-	//char *keyMark;	//˜ËÓ›ÒÑÖªµÄÃÜè€quadbyteÎ»
+	//char *keyMark;	//æ¨™è¨˜å·²çŸ¥çš„å¯†é‘°quadbyteä½
 	//int i, j, mark, mask, tmask;
-	//int kqBytes = 0, uBytes;	//Ó›ä›ÒÑÖªquadbyteºÍÎ´Öªquadbyte”µ
+	//int kqBytes = 0, uBytes;	//è¨˜éŒ„å·²çŸ¥quadbyteå’ŒæœªçŸ¥quadbyteæ•¸
 	//MainKey crackKey, tempKey;
 	//spn_Text temp;
 	//keyMark = (char*)malloc(sizeof(char) * sizeof(MainKey) * 2 * 8);
 	//printf("Set known key bits (hex format) : ");
-	//scanf("%x", &crackKey);	//İ”ÈëÒÑÖªÃÜè€²¿·Ö
+	//scanf("%x", &crackKey);	//è¼¸å…¥å·²çŸ¥å¯†é‘°éƒ¨åˆ†
 	//mask = 0xf;
 	//j = 0;
 	//for (i = 0; i < sizeof(MainKey) * 2 * 8; i++) {
@@ -111,8 +111,8 @@ int keyCracker(spn_Text *p1, spn_Text *p2, int num)
 	//	}
 	//	mask = mask << 4;
 	//}
-	//keyMark[j++] = -1;	//keyMarkÎ²˜ËÓ›
-	//uBytes = sizeof(MainKey) * 8 - kqBytes * 4;	//kBytesÓ›ä›Î´ÖªÃÜè€×Ö¹”µ
+	//keyMark[j++] = -1;	//keyMarkå°¾æ¨™è¨˜
+	//uBytes = sizeof(MainKey) * 8 - kqBytes * 4;	//kBytesè¨˜éŒ„æœªçŸ¥å¯†é‘°å­—ç¯€æ•¸
 	//j = 0;
 	//tmask = 0;
 	//for (i = pow(2, uBytes); i >= 0 ; i++) {
@@ -124,10 +124,10 @@ int keyCracker(spn_Text *p1, spn_Text *p2, int num)
 	//			tmask = 0xf;
 	//			continue;
 	//		}
-	//		//Éú³Éß‰İ‹³ßmask
+	//		//ç”Ÿæˆé‚è¼¯å°ºmask
 	//		mask = (0x1 << (keyMark[j] * 4)) - 1;
 	//		mask = mask ^ tmask;
-	//		//ÄiÖĞÈ¡³ökeyMark[j] - keyMark[j-1]égµÄ±ÈÌØÎ»
+	//		//å¾iä¸­å–å‡ºkeyMark[j] - keyMark[j-1]é–“çš„æ¯”ç‰¹ä½
 	//		tmask = mask;
 	//		mask = i & mask;
 	//		tempKey = mask << (keyMark[j++] * 4 - 1);
@@ -137,7 +137,7 @@ int keyCracker(spn_Text *p1, spn_Text *p2, int num)
 	//	printf("%x\n", tempKey);
 	//	getchar();
 	//	mark = 0;
-	//	//œyÔ‡num‚€Ã÷ÎÄ¼ÓÃÜµÄÕı´_ĞÔ
+	//	//æ¸¬è©¦numå€‹æ˜æ–‡åŠ å¯†çš„æ­£ç¢ºæ€§
 	//	for (j = 0; j < num; j++) {
 	//		spn_SetKey(tempKey);
 	//		spn_Encrypt_raw(p1 + j, &temp);
@@ -235,26 +235,26 @@ chain findChain_diff()
 	getchar();
 	u = x;
 	prob = 1;
-	//ÖğÂÖËÑË÷ÕÒµ½×î´óspn±Æ½ü
+	//é€è½®æœç´¢æ‰¾åˆ°æœ€å¤§spné€¼è¿‘
 	for (r = 0; r < RoundNum - 1; r++) {
 		printf("\nRound %d\n", r + 1);
 		printf("Probability now is : %lf\n", prob);
 		printf("--------------------------------\n");
 		printf("...In  Vectors  : ");
 		printb(u, 4);
-		//±ê¼Ç»î¶¯µÄsºĞ
+		//æ ‡è®°æ´»åŠ¨çš„sç›’
 		printf("...Active S-Box : ");
 		for (sId = sNum - 1; sId >= 0; sId--) {
-			sIn[r][sId] = (u >> sId * 4) & 0xf;	//¶Ôu½øĞĞ²ğ·Ö 3210
+			sIn[r][sId] = (u >> sId * 4) & 0xf;	//å¯¹uè¿›è¡Œæ‹†åˆ† 3210
 			if ((u & (0xf << (sId * 4))) != 0) {
 				smark[sId] = 1;
-				printf("|  S%d  |", 4 - sId);	//×ª»»Îª´ó¶ËÏÔÊ¾
+				printf("|  S%d  |", 4 - sId);	//è½¬æ¢ä¸ºå¤§ç«¯æ˜¾ç¤º
 			}
 			else
 				smark[sId] = 0;
 		}
 		printf("\n");
-		//¶Ô»î¶¯µÄsºĞÑ°ÕÒ×î´óÀ©É¢ÂÊ
+		//å¯¹æ´»åŠ¨çš„sç›’å¯»æ‰¾æœ€å¤§æ‰©æ•£ç‡
 		v = 0;
 		for (sId = sNum - 1; sId >= 0; sId--) {
 			if (smark[sId] == 0) {
@@ -268,10 +268,10 @@ chain findChain_diff()
 				getchar();
 				} while(!((distrTable[sIn[r][sId]][sOut[r][sId]] != 0) && (distrTable[sIn[r][sId]][sOut[r][sId]] != 16)));
 				v = v ^ (sOut[r][sId] << sId * 4);
-				prob = prob * distrTable[sIn[r][sId]][sOut[r][sId]] / 16;	//ÏßĞÔÁ´µÄ¸ÅÂÊÆ«²î
+				prob = prob * distrTable[sIn[r][sId]][sOut[r][sId]] / 16;	//çº¿æ€§é“¾çš„æ¦‚ç‡åå·®
 			}
 		}
-		//¸ù¾İÑ¡ÔñµÄsºĞÊä³öPÖÃ»»µÃµ½ÏÂÒ»ÂÖµÄËæ»ú±äÁ¿ÊäÈë
+		//æ ¹æ®é€‰æ‹©çš„sç›’è¾“å‡ºPç½®æ¢å¾—åˆ°ä¸‹ä¸€è½®çš„éšæœºå˜é‡è¾“å…¥
 		u = Permutation(v, spn_Per);
 		printf("...Out Vectors  : ");
 		printb(v, 4);
@@ -285,7 +285,7 @@ chain findChain_diff()
 		diff_chain.x[sId] = (char)sIn[0][sId];
 		diff_chain.y[sId] = (y >> sId * 4) & 0xf;
 		if (u & (0xf << 4 * sId))
-			c++;	//Í³¼ÆÓ°ÏìµÄÃÜÔ¿±ÈÌØ
+			c++;	//ç»Ÿè®¡å½±å“çš„å¯†é’¥æ¯”ç‰¹
 	}
 	diff_chain.in = x;
 	diff_chain.prob = prob;
@@ -310,7 +310,7 @@ void findKey_diff(chain diff_chain)
 	clock_t t1, t2;
 	int i, j, k, m;
 	int filter;
-	int *counter;	//ºòÑ¡ÃÜÔ¿¼ÆÊıÆ÷Ö¸Õë
+	int *counter;	//å€™é€‰å¯†é’¥è®¡æ•°å™¨æŒ‡é’ˆ
 	int key, maxcount, maxkey;
 	spn_Text x1, x2, y1, y2;
 	char *u, *v, *uu, *vv, *uuu;
@@ -322,20 +322,20 @@ void findKey_diff(chain diff_chain)
 	uuu = (char*)malloc(sizeof(char) * diff_chain.keyNum);
 	mark = (char*)malloc(sizeof(char) * diff_chain.keyNum);
 	counter = (int*)malloc(sizeof(int) * (size_t)pow(2, 4 * diff_chain.keyNum));
-	//·ÖÅä²¢³õÊ¼»¯ÃÜÔ¿¼ÆÊıÆ÷
+	//åˆ†é…å¹¶åˆå§‹åŒ–å¯†é’¥è®¡æ•°å™¨
 	for (i = 0; i < pow(2, 4 * diff_chain.keyNum); i++)
 		counter[i] = 0;
-	//v/uÏÂ±êÓëÊµ¼ÊÎ»ÖÃµÄ¹ØÏµ
+	//v/uä¸‹æ ‡ä¸å®é™…ä½ç½®çš„å…³ç³»
 	for (i = 0, j = 0; i < sNum; i++)
 		if (diff_chain.y[i] != 0)
 			mark[j++] = i;	//3210
 	srand((unsigned int)time(0));
-	//²âÊÔpairNum¸öÃ÷ÃÜÎÄ¶Ô
+	//æµ‹è¯•pairNumä¸ªæ˜å¯†æ–‡å¯¹
 	t1 = clock();
 	for (i = 0; i < diff_chain.pairNum; i++) {
-		x1 = rand() % 0xffff;	//Éú³É16bitµÄËæ»úÃ÷ÎÄx1
+		x1 = rand() % 0xffff;	//ç”Ÿæˆ16bitçš„éšæœºæ˜æ–‡x1
 		spn_Encrypt_raw(&x1, &y1);
-		x2 = x1 ^ diff_chain.in;	//¼ÆËã¾ßÓĞÖ¸¶¨Òì»òÖµµÄx2
+		x2 = x1 ^ diff_chain.in;	//è®¡ç®—å…·æœ‰æŒ‡å®šå¼‚æˆ–å€¼çš„x2
 		spn_Encrypt_raw(&x2, &y2);
 		filter = 1;
 		for (j = 0; j < sNum; j++) {
@@ -354,7 +354,7 @@ void findKey_diff(chain diff_chain)
 			}
 		}
 		if (filter) {
-			//²âÊÔºòÑ¡ÃÜÔ¿
+			//æµ‹è¯•å€™é€‰å¯†é’¥
 			for (key = 0; key < pow(2, 4 * diff_chain.keyNum); key++) {
 				k = 1;
 				for (j = 0; j < diff_chain.keyNum; j++) {
@@ -375,7 +375,7 @@ void findKey_diff(chain diff_chain)
 		else
 			i--;
 	}
-	//±éÀú¼ÆÊıÆ÷Ñ°ÕÒT/2×î´óÆ«ÒÆÁ¿
+	//éå†è®¡æ•°å™¨å¯»æ‰¾T/2æœ€å¤§åç§»é‡
 	maxcount = 0;
 	for (key = 0; key < pow(2, 4 * diff_chain.keyNum); key++) {
 		if (counter[key] > maxcount) {

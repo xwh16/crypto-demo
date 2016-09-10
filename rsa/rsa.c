@@ -18,8 +18,8 @@ void randomPrime(mpz_t num, int key_length, int round)
 {
 	int i = 1;
 	do {
-		mpz_urandomb(num, state, key_length);	//Éú³ÉËæ»úÊınum
-		mpz_setbit(num, 0);	//ÉèÖÃnumÎªÆæÊı
+		mpz_urandomb(num, state, key_length);	//ç”Ÿæˆéšæœºæ•°num
+		mpz_setbit(num, 0);	//è®¾ç½®numä¸ºå¥‡æ•°
 	} while (primeTest(num, round) == false);
 }
 
@@ -59,7 +59,7 @@ void rsa_generate_key(RSAPublicKey* puk, RSAPrvateKey* prk, int key_length, int 
 		gcd(g, prk->publicExponet, totient);
 	} while (mpz_cmp_ui(g, 1));	//test if e and totient(n) are coprime
 
-	//Ê¹ÓÃ2^16+1×÷Îª¹«Ô¿
+	//ä½¿ç”¨2^16+1ä½œä¸ºå…¬é’¥
 	/*
 	mpz_init(prk->publicExponet);
 	mpz_setbit(prk->publicExponet, 16);
@@ -78,7 +78,7 @@ void rsa_generate_key(RSAPublicKey* puk, RSAPrvateKey* prk, int key_length, int 
 
 void rsa_init()
 {
-	gmp_randinit_lc_2exp_size(state, 128);	//ÉèÖÃËæ»úÊı×´Ì¬state
+	gmp_randinit_lc_2exp_size(state, 128);	//è®¾ç½®éšæœºæ•°çŠ¶æ€state
 	gmp_randseed_ui(state, (unsigned long)time(NULL));
 }
 
@@ -228,11 +228,11 @@ int rsa_pkcs1_encode(mpz_t message, int bt) {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 1);
 		mpz_setbit(message, RSA_KEY_LENGTH - 31);
 		do {
-			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//Éú³ÉÌî³ä´®Pstring
-																							//8-size%8Ê¹µÃPstringÎ»ÊıÎª8µÄ±¶Êı
+			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//ç”Ÿæˆå¡«å……ä¸²Pstring
+																							//8-size%8ä½¿å¾—Pstringä½æ•°ä¸º8çš„å€æ•°
 		} while(mpz_sizeinbase(Pstring, 2) != RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));
-		rsa_pad_check(Pstring, 1);	//Ê¹ÓÃ·Ç0×Ö½ÚÌæ»»PstringÖĞµÄ0×Ö½Ú
-		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 2 * 8);	//×óÒÆPstring¿Õ³ö2¸ö0×Ö½Ú
+		rsa_pad_check(Pstring, 1);	//ä½¿ç”¨é0å­—èŠ‚æ›¿æ¢Pstringä¸­çš„0å­—èŠ‚
+		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 2 * 8);	//å·¦ç§»Pstringç©ºå‡º2ä¸ª0å­—èŠ‚
 		mpz_xor(message, message, Pstring);
 		break;
 	}
@@ -283,7 +283,7 @@ int rsa_pad_check(mpz_t Pstring, int mode)
 		else {
 			if (mode) {
 				do {
-					*p = (unsigned char)rand();	//Ëæ»úÉú³É·Ç0×Ö½ÚÌæ»»PstringÖĞµÄ0×Ö½Ú
+					*p = (unsigned char)rand();	//éšæœºç”Ÿæˆé0å­—èŠ‚æ›¿æ¢Pstringä¸­çš„0å­—èŠ‚
 				} while (*p == 0);
 			}
 			else
@@ -298,7 +298,7 @@ int rsa_pad_seek(mpz_t message)
 	int size, i;
 	unsigned char *p;
 	size = mpz_sizeinbase(message, 2);
-	p = (unsigned char*)(message->_mp_d) + size / 8;	//pÖ¸ÏòmessageµÄ¸ßÎ»
+	p = (unsigned char*)(message->_mp_d) + size / 8;	//pæŒ‡å‘messageçš„é«˜ä½
 	i = 0;
 	do {
 		i++;
@@ -322,16 +322,16 @@ int rsa_test()
 	mpz_inits(plain, cypher, temp, NULL);
 	rsa_init_key(&RSApubKey, &RSAprvKey);
 	while (op) {
-		printf("1024Î»RSAÑéÖ¤²âÊÔ³ÌĞò\n");
+		printf("1024ä½RSAéªŒè¯æµ‹è¯•ç¨‹åº\n");
 		printf("-------------------\n");
-		printf("1.Éú³ÉRSAËã·¨²ÎÊı:\n");
-		printf("2.µ¼³öÖ¤ÊéÎÄ¼ş:\n");
-		printf("3.Ê¹ÓÃRSA¼ÓÃÜ:\n");
-		printf("0.·µ»ØÉÏ¼¶²Ëµ¥:\n");
+		printf("1.ç”ŸæˆRSAç®—æ³•å‚æ•°:\n");
+		printf("2.å¯¼å‡ºè¯ä¹¦æ–‡ä»¶:\n");
+		printf("3.ä½¿ç”¨RSAåŠ å¯†:\n");
+		printf("0.è¿”å›ä¸Šçº§èœå•:\n");
 		scanf("%d", &op);
 		getchar();
 		if (op > 3) {
-			printf("´íÎó²Ù×÷Ïî.\n");
+			printf("é”™è¯¯æ“ä½œé¡¹.\n");
 			getchar();
 			continue;
 		}
@@ -346,29 +346,29 @@ int rsa_test()
 			t1 = clock();
 			rsa_generate_key(&RSApubKey, &RSAprvKey, RSA_KEY_LENGTH, RSA_DEFAULT_ROUND);
 			t2 = clock();
-			printf("Éú³ÉRSAËã·¨²ÎÊıÓÃÊ±:\t%ld ms\n\n", t2 - t1);
+			printf("ç”ŸæˆRSAç®—æ³•å‚æ•°ç”¨æ—¶:\t%ld ms\n\n", t2 - t1);
 			printf("----------------------------------------------------\n");
-			gmp_printf("¹«Ô¿:\n¹«¹²Ö¸Êı : %Zx\nÄ£Êı : %Zx\n", RSApubKey.publicExponent, RSApubKey.modulus);
+			gmp_printf("å…¬é’¥:\nå…¬å…±æŒ‡æ•° : %Zx\næ¨¡æ•° : %Zx\n", RSApubKey.publicExponent, RSApubKey.modulus);
 			printf("----------------------------------------------------\n");
-			gmp_printf("Ë½Ô¿:\nË½ÓĞÖ¸Êı : %Zx\n", RSAprvKey.privateExponet);
+			gmp_printf("ç§é’¥:\nç§æœ‰æŒ‡æ•° : %Zx\n", RSAprvKey.privateExponet);
 			printf("----------------------------------------------------\n");
 			break;
 		}
 		case 2: {
 			//rsa_check_key();
-			printf("ÊäÈëRSA¹«/Ë½Ô¿Ö¤ÊéÎÄ¼şÃû:\n");
+			printf("è¾“å…¥RSAå…¬/ç§é’¥è¯ä¹¦æ–‡ä»¶å:\n");
 			gets(buf1);
 			gets(buf2);
 			if (rsa_cer_gen(buf1, buf2, &RSApubKey, &RSAprvKey))
-				printf("Ö¤ÊéĞ´Èë´íÎó.\n");
+				printf("è¯ä¹¦å†™å…¥é”™è¯¯.\n");
 			else
-				printf("Ö¤ÊéĞ´Èë³É¹¦.\n");
+				printf("è¯ä¹¦å†™å…¥æˆåŠŸ.\n");
 			break;
 		}
 		case 3: {
 #define COUNT 100
 			//rsa_check_key();
-			printf("ÊäÈëÊ¹ÓÃRSA¼ÓÃÜµÄÃ÷ÎÄ:\n");
+			printf("è¾“å…¥ä½¿ç”¨RSAåŠ å¯†çš„æ˜æ–‡:\n");
 			gmp_scanf("%Zx", plain);
 			getchar();
 			//Binary Exponentiation
@@ -379,9 +379,9 @@ int rsa_test()
 					rsa_encrypt(&RSApubKey, plain, cypher, Bin_Exp);
 				}
 				t2 = clock();
-				printf("1.%d´Î RSA¼ÓÃÜ Ä£ÖØ¸´Æ½·½:%ld ms\n", COUNT, t2 - t1);
+				printf("1.%dæ¬¡ RSAåŠ å¯† æ¨¡é‡å¤å¹³æ–¹:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("ÃÜÎÄ:\n%Zx\n", cypher);
+				gmp_printf("å¯†æ–‡:\n%Zx\n", cypher);
 			}	
 			//Montgomery Exponentiation
 			{
@@ -391,9 +391,9 @@ int rsa_test()
 					rsa_encrypt(&RSApubKey, plain, cypher, Mont_Exp);
 				}
 				t2 = clock();
-				printf("2.%d´Î RSA¼ÓÃÜ ÃÉ¸çÂíÀû·¨:%ld ms\n", COUNT, t2 - t1);
+				printf("2.%dæ¬¡ RSAåŠ å¯† è’™å“¥é©¬åˆ©æ³•:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("ÃÜÎÄ:\n%Zx\n", cypher);
+				gmp_printf("å¯†æ–‡:\n%Zx\n", cypher);
 			}
 			//GMP mpz_powm
 			{
@@ -403,9 +403,9 @@ int rsa_test()
 					rsa_encrypt(&RSApubKey, plain, cypher, mpz_powm);
 				}
 				t2 = clock();
-				printf("3.%d´Î RSA¼ÓÃÜ GMPº¯Êı:%ld ms\n", COUNT, t2 - t1);
+				printf("3.%dæ¬¡ RSAåŠ å¯† GMPå‡½æ•°:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("ÃÜÎÄ:\n%Zx\n", cypher);
+				gmp_printf("å¯†æ–‡:\n%Zx\n", cypher);
 			}	//
 			getchar();
 
@@ -417,11 +417,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 0, Bin_Exp);
 				}
 				t2 = clock();
-				printf("a.%d´Î RSA½âÃÜ Ä£ÖØ¸´Æ½·½:%ld ms\n", COUNT, t2 - t1);
+				printf("a.%dæ¬¡ RSAè§£å¯† æ¨¡é‡å¤å¹³æ–¹:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			//Montgomery Exponentiation
 			{
@@ -431,11 +431,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 0, Mont_Exp);
 				}
 				t2 = clock();
-				printf("b.%d´Î RSA½âÃÜ ÃÉ¸çÂíÀû·¨:%ld ms\n", COUNT, t2 - t1);
+				printf("b.%dæ¬¡ RSAè§£å¯† è’™å“¥é©¬åˆ©æ³•:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			//GMP mpz_powm
 			{
@@ -445,11 +445,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 0, mpz_powm);
 				}
 				t2 = clock();
-				printf("c.%d´Î RSA½âÃÜ GMPº¯Êı:%ld ms\n", COUNT, t2 - t1);
+				printf("c.%dæ¬¡ RSAè§£å¯† GMPå‡½æ•°:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			getchar();
 
@@ -461,11 +461,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 1, Bin_Exp);
 				}
 				t2 = clock();
-				printf("A.%d´Î RSA½âÃÜ Ä£ÖØ¸´Æ½·½ + ÖĞ¹úÊ£Óà¶¨Àí:%ld ms\n", COUNT, t2 - t1);
+				printf("A.%dæ¬¡ RSAè§£å¯† æ¨¡é‡å¤å¹³æ–¹ + ä¸­å›½å‰©ä½™å®šç†:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			//Montgomery Exponentiation + Chm
 			{
@@ -475,11 +475,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 1, Mont_Exp);
 				}
 				t2 = clock();
-				printf("B.%d´Î RSA½âÃÜ ÃÉ¸çÂíÀû·¨ + ÖĞ¹úÊ£Óà¶¨Àí:%ld ms\n", COUNT, t2 - t1);
+				printf("B.%dæ¬¡ RSAè§£å¯† è’™å“¥é©¬åˆ©æ³• + ä¸­å›½å‰©ä½™å®šç†:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			//GMP mpz_powm + Chm
 			{
@@ -489,11 +489,11 @@ int rsa_test()
 					rsa_decrypt(&RSAprvKey, temp, cypher, 1, mpz_powm);
 				}
 				t2 = clock();
-				printf("C.%d´Î RSA½âÃÜ GMPº¯Êı + ÖĞ¹úÊ£Óà¶¨Àí:%ld ms\n", COUNT, t2 - t1);
+				printf("C.%dæ¬¡ RSAè§£å¯† GMPå‡½æ•° + ä¸­å›½å‰©ä½™å®šç†:%ld ms\n", COUNT, t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			getchar();
 			break;

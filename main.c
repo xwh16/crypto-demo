@@ -1,4 +1,4 @@
-
+ï»¿
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
@@ -18,13 +18,14 @@ int main()
 	int op = 1;
 	while (op) {
 		system("cls");
-		printf("Ñ¡Ôñ²âÊÔÀàÐÍ:\n");
+		printf("é€‰æ‹©æµ‹è¯•ç±»åž‹:\n");
 		printf("1.Mont_Test\n");
 		printf("2.RSA_Test\n");
 		printf("3.SPN_Test\n");
 		printf("4.File_Encrypt\n");
 		printf("0.Exit\n");
 		scanf("%d", &op);
+		system("cls");
 		switch (op) {
 		case 1:
 			Mont_Test();

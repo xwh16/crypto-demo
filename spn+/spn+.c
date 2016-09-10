@@ -7,11 +7,11 @@
 #include "..\gmp.h"
 #include "spn+.h"
 
-Key spn_Key;	//SPNÃÜÔ¿½á¹¹
-mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];	//S, PºĞÖÃ»»LUT
-mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];	//S, PºĞÄæÖÃ»»
+Key spn_Key;	//SPNå¯†é’¥ç»“æ„
+mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];	//S, Pç›’ç½®æ¢LUT
+mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];	//S, Pç›’é€†ç½®æ¢
 
-//AES-SºĞÌæ»»
+//AES-Sç›’æ›¿æ¢
 const mapping spn_Sub_default[256] =
 {
 	0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -31,7 +31,7 @@ const mapping spn_Sub_default[256] =
 	0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
 	0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
-//Ä¬ÈÏµÄPÖÃ»»
+//é»˜è®¤çš„Pç½®æ¢
 const mapping spn_Per_default[sBits * sNum] = 
 { 
 	0x08, 0x11, 0x1A, 0x23, 0x2C, 0x35, 0x3E, 0x09,
@@ -44,7 +44,7 @@ const mapping spn_Per_default[sBits * sNum] =
 	0x07, 0x17, 0x1E, 0x25, 0x27, 0x2A, 0x2F, 0x32
 };
 
-//ÅäÖÃÄ¬ÈÏµÄSºĞPºĞ
+//é…ç½®é»˜è®¤çš„Sç›’Pç›’
 int spn_Init()
 {
 	spn_SetSub((mapping*)spn_Sub_default);
@@ -52,7 +52,7 @@ int spn_Init()
 	return 0;
 }
 
-//ÅäÖÃSPNÍøÂçµÄÂÖÃÜÔ¿
+//é…ç½®SPNç½‘ç»œçš„è½®å¯†é’¥
 int spn_SetKey(MainKey inputKey)
 {
 	mpz_init(spn_Key.initKey);
@@ -61,7 +61,7 @@ int spn_SetKey(MainKey inputKey)
 	return 0;
 }
 
-//SPNÂÖÃÜÔ¿±àÅÅËã·¨
+//SPNè½®å¯†é’¥ç¼–æ’ç®—æ³•
 int KeyGen(Key* key)
 {
 	int round;
@@ -76,29 +76,29 @@ int KeyGen(Key* key)
 	return 0;
 }
 
-//ÅäÖÃinputÖ¸Ïò»º³åÇøÎªSPNµÄSºĞ
+//é…ç½®inputæŒ‡å‘ç¼“å†²åŒºä¸ºSPNçš„Sç›’
 int spn_SetSub(mapping* input)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
 		spn_Sub[i] = input[i];
-	//µ÷ÓÃreverseµ¼³öSºĞµÄÄæÌæ»»
+	//è°ƒç”¨reverseå¯¼å‡ºSç›’çš„é€†æ›¿æ¢
 	reverse(spn_Sub, spn_rSub, SBOX_LENGTH);
 	return 0;
 }
 
-//ÅäÖÃinputÖ¸Ïò»º³åÇøÎªSPNµÄPºĞ
+//é…ç½®inputæŒ‡å‘ç¼“å†²åŒºä¸ºSPNçš„Pç›’
 int spn_SetPer(mapping* input)
 {
 	int i;
 	for (i = 0; i < sBits * sNum; i++)
 		spn_Per[i] = input[i];
-	//µ÷ÓÃreverseµ¼³öPºĞµÄÄæÌæ»»
+	//è°ƒç”¨reverseå¯¼å‡ºPç›’çš„é€†æ›¿æ¢
 	reverse(spn_Per, spn_rPer, sBits * sNum);
 	return 0;
 }
 
-//¶ÔinputµÄÊı¾İ½øĞĞPºĞÖÃ»»
+//å¯¹inputçš„æ•°æ®è¿›è¡ŒPç›’ç½®æ¢
 spn_Text Permutation(spn_Text input, mapping* per)
 {
 	spn_Text bitmask, output = 0;
@@ -113,7 +113,7 @@ spn_Text Permutation(spn_Text input, mapping* per)
 	return output;
 }
 
-//¶ÔinputµÄÊı¾İ½øĞĞSºĞÌæ»»
+//å¯¹inputçš„æ•°æ®è¿›è¡ŒSç›’æ›¿æ¢
 spn_Text Substitution(spn_Text input, mapping* sub)
 {
 	int i;
@@ -126,16 +126,16 @@ spn_Text Substitution(spn_Text input, mapping* sub)
 	return output;
 }
 
-//µ¥×Ö½ÚµÄSºĞÌæ»»
-//Ê¹ÓÃLUT¿ìËÙÊµÏÖ
+//å•å­—èŠ‚çš„Sç›’æ›¿æ¢
+//ä½¿ç”¨LUTå¿«é€Ÿå®ç°
 char SBox(unsigned char input, mapping* sub)
 {
 	return sub[input];
 }
 
-//µ¼³öorigianlÖĞlength³¤¶È±ä»»µÄÄæ±ä»»
-//±ä»»½á¹ûĞ´ÈëÒÑ·ÖÅä¿Õ¼äµÄreversed
-//¿ÉÓÃÓÚSPN½á¹¹µÄSºĞÓëPºĞ
+//å¯¼å‡ºorigianlä¸­lengthé•¿åº¦å˜æ¢çš„é€†å˜æ¢
+//å˜æ¢ç»“æœå†™å…¥å·²åˆ†é…ç©ºé—´çš„reversed
+//å¯ç”¨äºSPNç»“æ„çš„Sç›’ä¸Pç›’
 void reverse(mapping* original, mapping* reversed, int length)
 {
 	int i;
@@ -143,7 +143,7 @@ void reverse(mapping* original, mapping* reversed, int length)
 		reversed[original[i]] = i;
 }
 
-//SPNÍøÂçµ×²ãÔªÊı¾İ¼ÓÃÜ
+//SPNç½‘ç»œåº•å±‚å…ƒæ•°æ®åŠ å¯†
 spn_Text spn_Encrypt_raw(spn_Text *plain, spn_Text *cypher)
 {
 	int round;
@@ -161,7 +161,7 @@ spn_Text spn_Encrypt_raw(spn_Text *plain, spn_Text *cypher)
 	return temp;
 }
 
-//SPNÍøÂçµ×²ãÔªÊı¾İ½âÃÜ
+//SPNç½‘ç»œåº•å±‚å…ƒæ•°æ®è§£å¯†
 spn_Text spn_Decrypt_raw(spn_Text *plain, spn_Text *cypher)
 {
 	int round = RoundNum;
@@ -179,7 +179,7 @@ spn_Text spn_Decrypt_raw(spn_Text *plain, spn_Text *cypher)
 	return temp;
 }
 
-//CBCÄ£Ê½ÏÂSPNÍøÂçÒ»´ÎÔªÊı¾İ¼ÓÃÜ
+//CBCæ¨¡å¼ä¸‹SPNç½‘ç»œä¸€æ¬¡å…ƒæ•°æ®åŠ å¯†
 void spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
@@ -187,7 +187,7 @@ void spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 	spn_Encrypt_raw(&temp, cypher);
 }
 
-//CBCÄ£Ê½ÏÂSPNÍøÂçÒ»´ÎÔªÊı¾İ½âÃÜ
+//CBCæ¨¡å¼ä¸‹SPNç½‘ç»œä¸€æ¬¡å…ƒæ•°æ®è§£å¯†
 void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
@@ -195,7 +195,7 @@ void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 	*plain = temp ^ *vect;
 }
 
-//CBCÄ£Ê½µÄÎÄ¼ş¼ÓÃÜ
+//CBCæ¨¡å¼çš„æ–‡ä»¶åŠ å¯†
 int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
 {
 	clock_t t1, t2;
@@ -203,31 +203,31 @@ int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
 	spn_Text plain, cypher, vect;
 
 	fseek(fp, 0, SEEK_END);
-	size = ftell(fp);	//ÎÄ¼ş´óĞ¡ (×Ö½ÚÊı)
-	rewind(fp);	//»¹Ô­ÎÄ¼şÖ¸Õë
+	size = ftell(fp);	//æ–‡ä»¶å¤§å° (å­—èŠ‚æ•°)
+	rewind(fp);	//è¿˜åŸæ–‡ä»¶æŒ‡é’ˆ
 
 	i = 0;
 	plain = 0;
 	spn_SetKey(sessionKey);	
 	vect = *initVect;
-	printf("¼ÓÃÜ¿ªÊ¼>>>\n");
-	t1 = clock();	//¿ªÊ¼¼ÆÊ±
+	printf("åŠ å¯†å¼€å§‹>>>\n");
+	t1 = clock();	//å¼€å§‹è®¡æ—¶
 	while (fread(&plain, sizeof(spn_Text), 1, fp)) {
 		#ifdef FILE_SHOW_STATUS
 			printf("\r--------%.2lf%%--------", ((double)i * sizeof(spn_Text) / size) * 100);
 		#endif
 		spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
 		if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
-			printf("¼ÓÃÜÊı¾İĞ´ÈëÊ§°Ü.\n");
+			printf("åŠ å¯†æ•°æ®å†™å…¥å¤±è´¥.\n");
 			return 2;
 		}
 		plain = 0;
 		vect = cypher;
 		i++;
 	}
-	//µ±´æÔÚ¶Ì¿éÊ±½øĞĞ¶Ì¿é´¦Àí
-	//²ÉÓÃpkcs#7 v1.5±ê×¼Ìî³ä
-	//rblock¼ÇÂ¼ÒªÌî³äµÄ×Ö½ÚÊı
+	//å½“å­˜åœ¨çŸ­å—æ—¶è¿›è¡ŒçŸ­å—å¤„ç†
+	//é‡‡ç”¨pkcs#7 v1.5æ ‡å‡†å¡«å……
+	//rblockè®°å½•è¦å¡«å……çš„å­—èŠ‚æ•°
 	rblock = sizeof(spn_Text) - (int)(size - i * sizeof(spn_Text));
 	if (rblock) {
 		for (i = 1; i <= rblock; i++) {
@@ -235,22 +235,22 @@ int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
 		}
 	}
 	else {
-		//Âú¿éÊ±¶îÍâÌî³äÒ»¿é0xffff...
+		//æ»¡å—æ—¶é¢å¤–å¡«å……ä¸€å—0xffff...
 		plain = -1;
 	}
 	spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
 	if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
-		printf("¼ÓÃÜ<¶Ì¿é>Êı¾İĞ´ÈëÊ§°Ü.\n");
+		printf("åŠ å¯†<çŸ­å—>æ•°æ®å†™å…¥å¤±è´¥.\n");
 		return 2;
 	}
-	t2 = clock();	//½áÊø¼ÆÊ±
+	t2 = clock();	//ç»“æŸè®¡æ—¶
 	printf("\r--------100%%--------");
-	printf("\nÎÄ¼ş¼ÓÃÜÍê±Ï.\n");
-	printf("±¾´Î¼ÓÃÜºÄÊ± : %ld ms\n", t2 - t1);
+	printf("\næ–‡ä»¶åŠ å¯†å®Œæ¯•.\n");
+	printf("æœ¬æ¬¡åŠ å¯†è€—æ—¶ : %ld ms\n", t2 - t1);
 	return 0;
 }
 
-//CBCÄ£Ê½µÄÎÄ¼ş½âÃÜ
+//CBCæ¨¡å¼çš„æ–‡ä»¶è§£å¯†
 int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
 {
 	clock_t t1, t2;
@@ -258,17 +258,17 @@ int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
 	unsigned long long i, size, hpos;
 	spn_Text plain, cypher, vect;
 
-	hpos = ftell(fp);	//ÎÄ¼şÍ·Î»ÖÃ(»á»°²ÎÊı)
+	hpos = ftell(fp);	//æ–‡ä»¶å¤´ä½ç½®(ä¼šè¯å‚æ•°)
 	fseek(fp, 0, SEEK_END);
-	size = ftell(fp) - hpos;	//ÎÄ¼ş´óĞ¡ (·Ö×é³¤¶È)
-	fsetpos(fp, &hpos);	//»¹Ô­ÎÄ¼şÖ¸Õë
+	size = ftell(fp) - hpos;	//æ–‡ä»¶å¤§å° (åˆ†ç»„é•¿åº¦)
+	fsetpos(fp, &hpos);	//è¿˜åŸæ–‡ä»¶æŒ‡é’ˆ
 
 	i = 1;
 	plain = 0;
 	spn_SetKey(sessionKey);
 	vect = *initVect;
-	printf("½âÃÜ¿ªÊ¼>>>\n");
-	t1 = clock();	//¿ªÊ¼¼ÆÊ±
+	printf("è§£å¯†å¼€å§‹>>>\n");
+	t1 = clock();	//å¼€å§‹è®¡æ—¶
 	while (i * sizeof(spn_Text) < size) {
 		fread(&cypher, sizeof(spn_Text), 1, fp);
 		#ifdef FILE_SHOW_STATUS
@@ -276,15 +276,15 @@ int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
 		#endif
 		spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
 		if (fwrite(&plain, sizeof(spn_Text), 1, dfp) == 0) {
-			printf("½âÃÜÊı¾İĞ´ÈëÊ§°Ü.\n");
+			printf("è§£å¯†æ•°æ®å†™å…¥å¤±è´¥.\n");
 			return 2;
 		}
 		vect = cypher;
 		i++;
 	}
-	//µ±i<sizeÊ±½øĞĞ¶Ì¿é´¦Àí
-	//²ÉÓÃpkcs#7 v1.5±ê×¼Ìî³ä
-	//rblock¼ÇÂ¼¶à³öµÄ×Ö½ÚÊı
+	//å½“i<sizeæ—¶è¿›è¡ŒçŸ­å—å¤„ç†
+	//é‡‡ç”¨pkcs#7 v1.5æ ‡å‡†å¡«å……
+	//rblockè®°å½•å¤šå‡ºçš„å­—èŠ‚æ•°
 	fread(&cypher, sizeof(spn_Text), 1, fp);
 	spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
 	pad = (spn_Text)0xff & (plain >> 56);
@@ -293,19 +293,19 @@ int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
 			plain = plain ^ ((spn_Text)pad << (8 * (sizeof(spn_Text) - i)));
 		}
 		if (fwrite(&plain, sizeof(spn_Text) - pad, 1, dfp) == 0) {
-			printf("½âÃÜ<¶Ì¿é>Êı¾İĞ´ÈëÊ§°Ü.\n");
+			printf("è§£å¯†<çŸ­å—>æ•°æ®å†™å…¥å¤±è´¥.\n");
 			return 2;
 		}
 	}
-	t2 = clock();	//½áÊø¼ÆÊ±
+	t2 = clock();	//ç»“æŸè®¡æ—¶
 	printf("\r--------100%%--------");
-	printf("\nÎÄ¼ş½âÃÜÍê±Ï.\n");
-	printf("±¾´Î½âÃÜºÄÊ± : %ld ms\n", t2 - t1);
+	printf("\næ–‡ä»¶è§£å¯†å®Œæ¯•.\n");
+	printf("æœ¬æ¬¡è§£å¯†è€—æ—¶ : %ld ms\n", t2 - t1);
 	return 0;
 }
 
-//ÒÔCBCÄ£Ê½Éú³ÉÖ¸¶¨×Ö½Ú´óĞ¡µÄ¶ş½øÖÆÃÜÎÄÊı¾İ
-//ÓÃÓÚËæ»úĞÔ¼ì²â
+//ä»¥CBCæ¨¡å¼ç”ŸæˆæŒ‡å®šå­—èŠ‚å¤§å°çš„äºŒè¿›åˆ¶å¯†æ–‡æ•°æ®
+//ç”¨äºéšæœºæ€§æ£€æµ‹
 int mgen()
 {
 	FILE *fp;
@@ -314,8 +314,8 @@ int mgen()
 	plain = 0;
 	srand((unsigned int)time(NULL));
 	vect = rand() * rand() * rand() % 0xffffffffffffffff;
-	printf("CBCÄ£Ê½³õÊ¼ÏòÁ¿:%llx\n", vect);
-	printf("µ¼³öÊı¾İÎÄ¼ş´óĞ¡ (mb) : ");
+	printf("CBCæ¨¡å¼åˆå§‹å‘é‡:%llx\n", vect);
+	printf("å¯¼å‡ºæ•°æ®æ–‡ä»¶å¤§å° (mb) : ");
 	scanf("%ld", &size);
 	max = size * 1024 * 1024 * 8 / (sBits * sNum);
 	if ((fp = fopen("test.dat", "wb")) == NULL) {
@@ -329,7 +329,7 @@ int mgen()
 		fwrite(&cypher, sizeof(spn_Text), 1, fp);
 		vect = cypher;
 	}
-	printf("\nÊı¾İµ¼³öÍê±Ï.");
+	printf("\næ•°æ®å¯¼å‡ºå®Œæ¯•.");
 	fclose(fp);
 	getchar();
 	return 0;
@@ -340,20 +340,20 @@ int spn_test()
 	int i, op = 1;
 	MainKey inputKey;
 	spn_Text plain, cypher;
-	gmp_randstate_t state;	//GMPËæ»úÊı×´Ì¬
+	gmp_randstate_t state;	//GMPéšæœºæ•°çŠ¶æ€
 	mpz_init(inputKey);
 	spn_Init();
 	while (op) {
-		printf("ÔöÇ¿SPN²âÊÔ³ÌĞò\n");
+		printf("å¢å¼ºSPNæµ‹è¯•ç¨‹åº\n");
 		printf("-------------------\n");
-		printf("1.Ëæ»úÉú³ÉSPNÖ÷ÃÜÔ¿ %d bit\n", SPN_KEY_LENGTH);
-		printf("2.Ê¹ÓÃSPN ¼ÓÃÜ\n");
-		printf("3.µ¼³ö²âÊÔÎÄ¼ş\n");
-		printf("0.·µ»ØÉÏ¼¶²Ëµ¥\n");
+		printf("1.éšæœºç”ŸæˆSPNä¸»å¯†é’¥ %d bit\n", SPN_KEY_LENGTH);
+		printf("2.ä½¿ç”¨SPN åŠ å¯†\n");
+		printf("3.å¯¼å‡ºæµ‹è¯•æ–‡ä»¶\n");
+		printf("0.è¿”å›ä¸Šçº§èœå•\n");
 		scanf("%d", &op);
 		getchar();
 		if (op > 3) {
-			printf("´íÎó²Ù×÷Ïî.\n");
+			printf("é”™è¯¯æ“ä½œé¡¹.\n");
 			getchar();
 			continue;
 		}
@@ -362,20 +362,20 @@ int spn_test()
 		}
 		switch (op) {
 		case 1:
-			gmp_randinit_lc_2exp_size(state, 128);	//ÉèÖÃËæ»úÊı×´Ì¬state
+			gmp_randinit_lc_2exp_size(state, 128);	//è®¾ç½®éšæœºæ•°çŠ¶æ€state
 			gmp_randseed_ui(state, (unsigned long)time(NULL));
-			mpz_urandomb(inputKey, state, SPN_KEY_LENGTH);	//Éú³ÉËæ»úÊınum
+			mpz_urandomb(inputKey, state, SPN_KEY_LENGTH);	//ç”Ÿæˆéšæœºæ•°num
 			gmp_printf("Main Key %d bit : %Zx\n", SPN_KEY_LENGTH, inputKey);
 			spn_SetKey(inputKey);
 			for (i = 0; i <= RoundNum; i++)
 				printf("> roundKey[%d] = %#llx\n", i + 1, spn_Key.roundKey[i]);
 			break;
 		case 2:
-			printf("Ã÷ÎÄÊäÈë (64 bit): ");
+			printf("æ˜æ–‡è¾“å…¥ (64 bit): ");
 			scanf("%llx", &plain);
 			getchar();
-			printf("¼ÓÃÜºóÃÜÎÄ (64 bit): %#llx \n", spn_Encrypt_raw(&plain, &cypher));
-			printf("½âÃÜºóÃ÷ÎÄ (64 bit): %#llx ", spn_Decrypt_raw(&plain, &cypher));
+			printf("åŠ å¯†åå¯†æ–‡ (64 bit): %#llx \n", spn_Encrypt_raw(&plain, &cypher));
+			printf("è§£å¯†åæ˜æ–‡ (64 bit): %#llx ", spn_Decrypt_raw(&plain, &cypher));
 			break;
 		case 3:
 			mgen();

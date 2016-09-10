@@ -6,46 +6,46 @@
 #include "..\gmp.h"
 #include "powm.h"
 
-//ÆôÓÃÃÉ¸çÂíÀûÕıÈ·ĞÔ²âÊÔ
+//å¯ç”¨è’™å“¥é©¬åˆ©æ­£ç¡®æ€§æµ‹è¯•
 //#define MONT_CHECK
 
-//Mont_TestµÄ²âÊÔ´ÎÊı
+//Mont_Testçš„æµ‹è¯•æ¬¡æ•°
 #define TESTCOUNT 100
-//Mont_TestµÄÄ£Êı×î´óÎ»Êı
+//Mont_Testçš„æ¨¡æ•°æœ€å¤§ä½æ•°
 #define TESTBITS 1024
-//ÒÔmp_limb_tÎªÃÉ¸çÂíÀû³ËÔËËãÎ»Êı
+//ä»¥mp_limb_tä¸ºè’™å“¥é©¬åˆ©ä¹˜è¿ç®—ä½æ•°
 #define MONTBITS (8*sizeof(mp_limb_t))
-//¼ÙÉèÃÉ¸çÂíÀûÖĞµÄT=XYµÄ×î´óÎ»Êı²»³¬¹ıMONT_MAX¸ömp_limb_t
+//å‡è®¾è’™å“¥é©¬åˆ©ä¸­çš„T=XYçš„æœ€å¤§ä½æ•°ä¸è¶…è¿‡MONT_MAXä¸ªmp_limb_t
 #define MONT_MAX 64
-//Ëæ»úÊı×´Ì¬
+//éšæœºæ•°çŠ¶æ€
 gmp_randstate_t state; 
 
 
 void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 {
 	/*************************************************
-		description:Ê¹ÓÃ ÃÉ¸çÂíÀûËã·¨ ¼ÆËã rop = base^exp mod N
+		description:ä½¿ç”¨ è’™å“¥é©¬åˆ©ç®—æ³• è®¡ç®— rop = base^exp mod N
 		inputParam :
-					base	µ×Êı
-					exp		Ö¸Êı
-					N		Ä£Êı, ¼Ù¶¨ÎªÆæÊı
+					base	åº•æ•°
+					exp		æŒ‡æ•°
+					N		æ¨¡æ•°, å‡å®šä¸ºå¥‡æ•°
 		outputParam:
-					rop		ÔËËã½á¹û
+					rop		è¿ç®—ç»“æœ
 	*************************************************/
-	assert(mpz_odd_p(N) == true);	//N±ØĞëÎªÆæÊı
+	assert(mpz_odd_p(N) == true);	//Nå¿…é¡»ä¸ºå¥‡æ•°
 
 	mp_limb_t N_1;	
 	mp_bitcnt_t ebit;
 	mp_bitcnt_t rbit;
-	mp_bitcnt_t index;	//Ñ­»·¼ÆÊıÆ÷
+	mp_bitcnt_t index;	//å¾ªç¯è®¡æ•°å™¨
 
 	mpz_t K;	
 	mpz_t P, R;
 	mpz_t temp, N_inv, b;
-	mpz_inits(K, P, R, temp, N_inv, b, NULL);	//³õÊ¼»¯mpz´óÊı±äÁ¿
+	mpz_inits(K, P, R, temp, N_inv, b, NULL);	//åˆå§‹åŒ–mpzå¤§æ•°å˜é‡
 
-	rbit = N->_mp_size*MONTBITS;	//Ä£ÊıNÎ»Êı
-	ebit = mpz_sizeinbase(exp, 2);	//Ö¸ÊıexpÎ»Êı
+	rbit = N->_mp_size*MONTBITS;	//æ¨¡æ•°Nä½æ•°
+	ebit = mpz_sizeinbase(exp, 2);	//æŒ‡æ•°expä½æ•°
 
 	mpz_setbit(b, MONTBITS);	//b = 2^32
 	mpz_invert(N_inv, N, b);	
@@ -56,19 +56,19 @@ void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 	mpz_setbit(K, 2 * rbit);	
 	mpz_mod(K, K, N);	//K = 2^(2*rbit) mod N
 
-	MontPro1(P, K, base, N, N_1);	//½«base×ª»¯ÎªÃÉ¸çÂíÀûÊı P
-	MontPro1(R, K, temp, N, N_1);	//½«  1 ×ª»¯ÎªÃÉ¸çÂíÀûÊı R
+	MontPro1(P, K, base, N, N_1);	//å°†baseè½¬åŒ–ä¸ºè’™å“¥é©¬åˆ©æ•° P
+	MontPro1(R, K, temp, N, N_1);	//å°†  1 è½¬åŒ–ä¸ºè’™å“¥é©¬åˆ©æ•° R
 	for (index = 0; index < ebit; index++) {
 		if (mpz_tstbit(exp, index) == 1)
 			MontPro1(R, R, P, N, N_1);	//R = R*P mod N
 		MontPro1(P, P, P, N, N_1);	//P = P*P mod N
 	}
-	MontPro1(rop, temp, R, N, N_1);	//½«R×ª»¯»ØÊµÊıÓò
+	MontPro1(rop, temp, R, N, N_1);	//å°†Rè½¬åŒ–å›å®æ•°åŸŸ
 
 #ifdef MONT_CHECK
 	/*
-		²âÊÔ´úÂë
-		Ê¹ÓÃgmp:mpz_powm()²âÊÔÄ£ÃİÔËËã½á¹ûÕıÈ·ĞÔ
+		æµ‹è¯•ä»£ç 
+		ä½¿ç”¨gmp:mpz_powm()æµ‹è¯•æ¨¡å¹‚è¿ç®—ç»“æœæ­£ç¡®æ€§
 	*/
 	mpz_powm(temp, base, exp, N);
 	if (mpz_cmp(temp, rop) != 0) {
@@ -81,19 +81,19 @@ void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 	}
 #endif
 
-	mpz_clears(K, P, R, temp, N_inv, b, NULL);	//Ïú»Ùmpz´óÊı±äÁ¿
+	mpz_clears(K, P, R, temp, N_inv, b, NULL);	//é”€æ¯mpzå¤§æ•°å˜é‡
 }
 
 void MontPro1(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_limb_t N_1)
 {
 	/*************************************************
-	description:Ê¹ÓÃ 32Î»¾«¶È REDC ¼ÆËã x*y*r^(-1) mod N
+	description:ä½¿ç”¨ 32ä½ç²¾åº¦ REDC è®¡ç®— x*y*r^(-1) mod N
 	inputParam :
-				x, y	²Ù×÷Êı1, 2, ¼Ù¶¨ÎªÃÉ¸çÂíÀûÊı
-				N		Ä£Êı
-				N_1		Ô¤¼ÆËãµÄ -N^(-1) mod b
+				x, y	æ“ä½œæ•°1, 2, å‡å®šä¸ºè’™å“¥é©¬åˆ©æ•°
+				N		æ¨¡æ•°
+				N_1		é¢„è®¡ç®—çš„ -N^(-1) mod b
 	outputParam:
-				rop		ÔËËã½á¹û
+				rop		è¿ç®—ç»“æœ
 	*************************************************/
 	int i;
 	mpz_t t;
@@ -102,18 +102,18 @@ void MontPro1(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_lim
 	mpz_mul(t, x, y);		//T = xy
 	for (i = 0; i < N->_mp_size; i++) {
 		num = (*(t->_mp_d) * N_1);	//num = Ti * N_1 mod b
-									//Ä£2^32Í¨¹ınumµÄÒç³öÊµÏÖ
+									//æ¨¡2^32é€šè¿‡numçš„æº¢å‡ºå®ç°
 		mpz_addmul_ui(t, N, num);	//t = t + N*Num
-		mpz_tdiv_q_2exp(t, t, MONTBITS);	//½«tÓÒÒÆMONTBITSÎ»
+		mpz_tdiv_q_2exp(t, t, MONTBITS);	//å°†tå³ç§»MONTBITSä½
 	}
-	//Ñ­»·½áÊøÊ± t Ó¦Óë N ¾ßÓĞÏàÍ¬Î»Êı
-	//²¢ÇÒ t < 2N
+	//å¾ªç¯ç»“æŸæ—¶ t åº”ä¸ N å…·æœ‰ç›¸åŒä½æ•°
+	//å¹¶ä¸” t < 2N
 	if (mpz_cmp(t, N) >= 0) {
 		mpz_mod(t, t, N);
 	}
 
-	//Èç¹ûÕâÊ±ºòt >= N
-	//ÄÇ¾ÍÅö¹íÁË!
+	//å¦‚æœè¿™æ—¶å€™t >= N
+	//é‚£å°±ç¢°é¬¼äº†!
 	assert(mpz_cmp(t, N) <= 0);
 
 	mpz_set(T, t);
@@ -123,21 +123,21 @@ void MontPro1(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_lim
 void MontPro2(mpz_t T, const mpz_t x, const mpz_t y, const  mpz_t N, const mp_limb_t N_1)
 {
 	/*************************************************
-		description:Ê¹ÓÃ mpn µ×²ãº¯ÊıÓÅ»¯µÄREDCËã·¨
+		description:ä½¿ç”¨ mpn åº•å±‚å‡½æ•°ä¼˜åŒ–çš„REDCç®—æ³•
 		inputParam :
-					x, y	²Ù×÷Êı1, 2, ¼Ù¶¨ÎªÃÉ¸çÂíÀûÊı
-					N		Ä£Êı
-					N_1		Ô¤¼ÆËãµÄ -N^(-1) mod b
+					x, y	æ“ä½œæ•°1, 2, å‡å®šä¸ºè’™å“¥é©¬åˆ©æ•°
+					N		æ¨¡æ•°
+					N_1		é¢„è®¡ç®—çš„ -N^(-1) mod b
 		outputParam:
-					rop		ÔËËã½á¹û
+					rop		è¿ç®—ç»“æœ
 	*************************************************/
 
 	int i;
 	mp_limb_t num, carry, res[MONT_MAX] = { 0 };
 	mp_limb_t *temp,t[MONT_MAX] = { 0 };
 
-	//¼ÆËãxºÍyµÄ³Ë»ı£¬±£´æÔÚtÖĞ£¬ÕâÀï¼ÙÉèxºÍy¾ùÎªÃÉ¸çÂíÀûÊı
-	//mpn_mulº¯ÊıÒªÇós1n > s2n
+	//è®¡ç®—xå’Œyçš„ä¹˜ç§¯ï¼Œä¿å­˜åœ¨tä¸­ï¼Œè¿™é‡Œå‡è®¾xå’Œyå‡ä¸ºè’™å“¥é©¬åˆ©æ•°
+	//mpn_mulå‡½æ•°è¦æ±‚s1n > s2n
 	if (x->_mp_size > y->_mp_size)
 	   mpn_mul(t, x->_mp_d, x->_mp_size,y->_mp_d,y->_mp_size);
 	else
@@ -146,27 +146,27 @@ void MontPro2(mpz_t T, const mpz_t x, const mpz_t y, const  mpz_t N, const mp_li
 	temp = t;
 	for (i = 0; i < N->_mp_size; i++){
  		num = temp[0]*N_1;//num=t[0]*N_1
-		res[i] = mpn_addmul_1(temp, N->_mp_d,N->_mp_size,num);//t=t+N*num,µ«ÊÇ¼Ó·¨Ö»×öÁËN->_mp_size´Î£¬³¬³öN->_mp_size³¤¶ÈµÄ±£´æÔÚres[i]ÖĞ
-		temp++;//Ïàµ±ÓÚÕû³ı2^32
+		res[i] = mpn_addmul_1(temp, N->_mp_d,N->_mp_size,num);//t=t+N*num,ä½†æ˜¯åŠ æ³•åªåšäº†N->_mp_sizeæ¬¡ï¼Œè¶…å‡ºN->_mp_sizeé•¿åº¦çš„ä¿å­˜åœ¨res[i]ä¸­
+		temp++;//ç›¸å½“äºæ•´é™¤2^32
 	}
 	
-	carry = mpn_add_n(temp, temp, res, N->_mp_size);//½«ÉÏÃæ²½ÖèÖĞËùÓĞÃ»ÓĞ´¦ÀíµÄ½øÎ»res[i]Ò»´ÎĞÔµØ¼Óµ½tÉÏ
-	if (carry != 0 || mpn_cmp(temp, N->_mp_d, N->_mp_size) >= 0)//ÅĞ¶ÏÊÇ·ñĞèÒª-N
+	carry = mpn_add_n(temp, temp, res, N->_mp_size);//å°†ä¸Šé¢æ­¥éª¤ä¸­æ‰€æœ‰æ²¡æœ‰å¤„ç†çš„è¿›ä½res[i]ä¸€æ¬¡æ€§åœ°åŠ åˆ°tä¸Š
+	if (carry != 0 || mpn_cmp(temp, N->_mp_d, N->_mp_size) >= 0)//åˆ¤æ–­æ˜¯å¦éœ€è¦-N
 		mpn_sub_n(temp, temp, N->_mp_d, N->_mp_size);
 
-	mpz_import(T, N->_mp_size, -1, sizeof(mp_limb_t), 0, 0,temp);//½«µÃµ½µÄ½á¹û±£´æÔÚTÖĞ
+	mpz_import(T, N->_mp_size, -1, sizeof(mp_limb_t), 0, 0,temp);//å°†å¾—åˆ°çš„ç»“æœä¿å­˜åœ¨Tä¸­
 }
 
 void Bin_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 {
 	/*************************************************
-		description:Ê¹ÓÃ Ä£ÖØ¸´Æ½·½·¨ ¼ÆËã base^exp mod N
+		description:ä½¿ç”¨ æ¨¡é‡å¤å¹³æ–¹æ³• è®¡ç®— base^exp mod N
 		inputParam :
-					base	µ×Êı
-					exp		Ö¸Êı
-					N		Ä£Êı
+					base	åº•æ•°
+					exp		æŒ‡æ•°
+					N		æ¨¡æ•°
 		outputParam:
-					rop		ÔËËã½á¹û
+					rop		è¿ç®—ç»“æœ
 	*************************************************/
 	int i;
 	mpz_set_ui(rop, 1);	//rop = 1
@@ -181,7 +181,7 @@ void Bin_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 
 void Mont_Test()
 {
-	gmp_randinit_lc_2exp_size(state, 128);	//ÉèÖÃËæ»úÊı×´Ì¬state
+	gmp_randinit_lc_2exp_size(state, 128);	//è®¾ç½®éšæœºæ•°çŠ¶æ€state
 	gmp_randseed_ui(state, (unsigned long)time(NULL));
 	int i;
 	time_t t1, t2;
@@ -191,28 +191,28 @@ void Mont_Test()
 	mpz_rrandomb(exp, state, TESTBITS);
 	mpz_rrandomb(mod, state, TESTBITS);
 	mpz_rrandomb(base, state, TESTBITS);
-	mpz_setbit(mod, 0);	//ÉèÖÃmodÎªÆæÊı
+	mpz_setbit(mod, 0);	//è®¾ç½®modä¸ºå¥‡æ•°
 
 	t1 = clock();
 	for (i = 0; i < TESTCOUNT; i++) {
 		mpz_powm(r1, base, exp, mod);
 	}
 	t2 = clock();
-	printf("GMP mpz_powm º¯ÊıÓÃÊ±: \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
+	printf("GMP mpz_powm å‡½æ•°ç”¨æ—¶: \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
 
 	t1 = clock();
 	for (i = 0; i < TESTCOUNT; i++) {
 		Mont_Exp(r1, base, exp, mod);
 	}
 	t2 = clock();
-	printf("32Î»ÃÉ¸çÂíÀûËã·¨ÓÃÊ± : \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
+	printf("32ä½è’™å“¥é©¬åˆ©ç®—æ³•ç”¨æ—¶ : \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
 
 	t1 = clock();
 	for (i = 0; i < TESTCOUNT; i++) {
 		Bin_Exp(r1, base, exp, mod);
 	}
 	t2 = clock();
-	printf("Ä£ÖØ¸´Æ½·½ÓÃÊ± : \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
+	printf("æ¨¡é‡å¤å¹³æ–¹ç”¨æ—¶ : \t%lf\n", (double)(t2 - t1) / TESTCOUNT);
 
 	getchar();
 	getchar();

@@ -12,30 +12,30 @@
 void file_init_session(MainKey sessionKey, spn_Text *initVect)
 {
     /******************************************
-	descripiton:Ëæ»úÉú³ÉSPN-CBCÄ£Ê½²ÎÊı
+	descripiton:éšæœºç”ŸæˆSPN-CBCæ¨¡å¼å‚æ•°
 	outputParam:
-				sessionKey	SPNÍøÂçÖ÷ÃÜÔ¿
-				initVect	CBCÄ£Ê½³õÊ¼ÏòÁ¿
+				sessionKey	SPNç½‘ç»œä¸»å¯†é’¥
+				initVect	CBCæ¨¡å¼åˆå§‹å‘é‡
 	******************************************/
     gmp_randstate_t state;
     mpz_inits(sessionKey, initVect, NULL);
     srand((unsigned int)time(NULL));
     gmp_randinit_lc_2exp_size(state, 128);
     gmp_randseed_ui(state, (unsigned long)time(NULL));
-    mpz_urandomb(sessionKey, state, SPN_KEY_LENGTH);	   //Éú³ÉÖ÷ÃÜÔ¿sessionKey
-    *initVect = rand() * rand() * rand() % 0xffffffffffffffff; //Éú³É³õÊ¼ÏòÁ¿initVect
+    mpz_urandomb(sessionKey, state, SPN_KEY_LENGTH);	   //ç”Ÿæˆä¸»å¯†é’¥sessionKey
+    *initVect = rand() * rand() * rand() % 0xffffffffffffffff; //ç”Ÿæˆåˆå§‹å‘é‡initVect
 }
 
 int file_encrypt(RSAPublicKey *RSApubKey)
 {
     /******************************************
-	descripiton:Ê¹ÓÃCBC¹¤×÷Ä£Ê½µÄSPN+ÍøÂç¼ÓÃÜÎÄ¼ş
-				ÎÄ¼şÍ·Ğ´ÈëRSA¹«Ô¿¼ÓÃÜºóµÄSPNÃÜÔ¿ºÍ³õÊ¼ÏòÁ¿IV
+	descripiton:ä½¿ç”¨CBCå·¥ä½œæ¨¡å¼çš„SPN+ç½‘ç»œåŠ å¯†æ–‡ä»¶
+				æ–‡ä»¶å¤´å†™å…¥RSAå…¬é’¥åŠ å¯†åçš„SPNå¯†é’¥å’Œåˆå§‹å‘é‡IV
 	inputParam :
-				RSApubKey	RSA¹«Ô¿½á¹¹Ö¸Õë
+				RSApubKey	RSAå…¬é’¥ç»“æ„æŒ‡é’ˆ
 	errorCode  :
 				0			ALIZZWELL
-				1			ÎÄ¼ş´ò¿ª´íÎó
+				1			æ–‡ä»¶æ‰“å¼€é”™è¯¯
 	******************************************/
     clock_t t1, t2;
     mpz_t plain, cypher, temp;
@@ -45,45 +45,45 @@ int file_encrypt(RSAPublicKey *RSApubKey)
     MainKey sessionKey;
     mpz_t sessionInfo, RSAcypher;
     mpz_inits(plain, cypher, temp, sessionKey, RSAcypher, sessionInfo, NULL);
-    //´ò¿ªÎÄ¼ş
+    //æ‰“å¼€æ–‡ä»¶
     {
-	printf("ÊäÈëÊ¹ÓÃSPN+¼ÓÃÜµÄÎÄ¼şÃû:");
+	printf("è¾“å…¥ä½¿ç”¨SPN+åŠ å¯†çš„æ–‡ä»¶å:");
 	scanf("%s", buffer);
 	getchar();
 	if ((fp1 = fopen(buffer, "rb")) == NULL)
 	{
-	    printf("ÎÄ¼ş %s ´ò¿ªÊ§°Ü.\n", buffer);
+	    printf("æ–‡ä»¶ %s æ‰“å¼€å¤±è´¥.\n", buffer);
 	    return FILE_OPEN_ERROR;
 	}
-	printf("ÊäÈë¼ÓÃÜºóÎÄ¼şÃû:");
+	printf("è¾“å…¥åŠ å¯†åæ–‡ä»¶å:");
 	scanf("%s", buffer);
 	getchar();
 	if ((fp2 = fopen(buffer, "wb")) == NULL)
 	{
-	    printf("¼ÓÃÜÎÄ¼ş´´½¨Ê§°Ü.\n");
+	    printf("åŠ å¯†æ–‡ä»¶åˆ›å»ºå¤±è´¥.\n");
 	    return FILE_OPEN_ERROR;
 	}
     }
-    //Éú³ÉÖ÷ÃÜÔ¿ºÍ³õÊ¼ÏòÁ¿IV
+    //ç”Ÿæˆä¸»å¯†é’¥å’Œåˆå§‹å‘é‡IV
     {
-		file_init_session(sessionKey, &initVect); //Éú³É»á»°²ÎÊı
-		gmp_printf("±¾´ÎÎÄ¼ş¼ÓÃÜÃÜÔ¿ %d bit : %Zx\n", SPN_KEY_LENGTH, sessionKey);
-		printf("CBCÄ£Ê½³õÊ¼ÏòÁ¿:%llx", initVect);
+		file_init_session(sessionKey, &initVect); //ç”Ÿæˆä¼šè¯å‚æ•°
+		gmp_printf("æœ¬æ¬¡æ–‡ä»¶åŠ å¯†å¯†é’¥ %d bit : %Zx\n", SPN_KEY_LENGTH, sessionKey);
+		printf("CBCæ¨¡å¼åˆå§‹å‘é‡:%llx", initVect);
 		getchar();
     }
-    //Ê¹ÓÃRSAËã·¨¼ÓÃÜ±¾´Î»á»°µÄÖ÷ÃÜÔ¿ºÍ³õÊ¼ÏòÁ¿IV
-    //²¢Ğ´Èëfp2ÎÄ¼şÍ·²¿
+    //ä½¿ç”¨RSAç®—æ³•åŠ å¯†æœ¬æ¬¡ä¼šè¯çš„ä¸»å¯†é’¥å’Œåˆå§‹å‘é‡IV
+    //å¹¶å†™å…¥fp2æ–‡ä»¶å¤´éƒ¨
     {
-		mpz_import(sessionInfo, 1, -1, sizeof(spn_Text), 0, 0, &initVect);	 //½«initVectµ¼ÈësessionInfo
-		mpz_mul_2exp(sessionInfo, sessionInfo, SPN_KEY_LENGTH); //×óÒÆsessionInfoÎªsessionKeyÌÚ³ö¿Õ¼ä
+		mpz_import(sessionInfo, 1, -1, sizeof(spn_Text), 0, 0, &initVect);	 //å°†initVectå¯¼å…¥sessionInfo
+		mpz_mul_2exp(sessionInfo, sessionInfo, SPN_KEY_LENGTH); //å·¦ç§»sessionInfoä¸ºsessionKeyè…¾å‡ºç©ºé—´
 		mpz_xor(sessionInfo, sessionInfo, sessionKey);				   //sessionInfo | sessionKey
-		rsa_pkcs1_encode(sessionInfo, 2);					   //¶ÔsessionInfoÒÔpkcs#1 v1.5±ê×¼±àÂë
+		rsa_pkcs1_encode(sessionInfo, 2);					   //å¯¹sessionInfoä»¥pkcs#1 v1.5æ ‡å‡†ç¼–ç 
 		rsa_encrypt(RSApubKey, sessionInfo, RSAcypher, mpz_powm);
-		mpz_out_raw(fp2, RSAcypher); //¼ÓÃÜºóµÄsessionInfoĞ´ÈëÎÄ¼ş
+		mpz_out_raw(fp2, RSAcypher); //åŠ å¯†åçš„sessionInfoå†™å…¥æ–‡ä»¶
     }
-    //CBCÄ£Ê½¼ÓÃÜfp1ÎÄ¼ş²¢Ğ´Èëfp2
+    //CBCæ¨¡å¼åŠ å¯†fp1æ–‡ä»¶å¹¶å†™å…¥fp2
     spn_Encrypt_cbc(fp1, fp2, sessionKey, &initVect);
-    //ÊÍ·ÅÎÄ¼şÖ¸Õë
+    //é‡Šæ”¾æ–‡ä»¶æŒ‡é’ˆ
     fclose(fp2);
     fclose(fp1);
     mpz_clears(plain, cypher, temp, sessionKey, sessionInfo, RSAcypher, NULL);
@@ -92,13 +92,13 @@ int file_encrypt(RSAPublicKey *RSApubKey)
 int file_decrypt(RSAPrvateKey *RSAprvKey)
 {
     /******************************************
-	descripiton:Ê¹ÓÃCBC¹¤×÷Ä£Ê½µÄSPN+ÍøÂç½âÃÜÎÄ¼ş
-				´ÓÎÄ¼şÍ·¶ÁÈëRSA¹«Ô¿¼ÓÃÜºóµÄSPNÃÜÔ¿ºÍ³õÊ¼ÏòÁ¿IV
+	descripiton:ä½¿ç”¨CBCå·¥ä½œæ¨¡å¼çš„SPN+ç½‘ç»œè§£å¯†æ–‡ä»¶
+				ä»æ–‡ä»¶å¤´è¯»å…¥RSAå…¬é’¥åŠ å¯†åçš„SPNå¯†é’¥å’Œåˆå§‹å‘é‡IV
 	inputParam :
-				RSAprvKey	RSAË½Ô¿½á¹¹Ö¸Õë
+				RSAprvKey	RSAç§é’¥ç»“æ„æŒ‡é’ˆ
 	errorCode  :
 				0			ALIZZWELL
-				1			ÎÄ¼ş´ò¿ª´íÎó
+				1			æ–‡ä»¶æ‰“å¼€é”™è¯¯
 	******************************************/
     clock_t t1, t2;
     mpz_t plain, cypher, temp;
@@ -108,48 +108,48 @@ int file_decrypt(RSAPrvateKey *RSAprvKey)
     MainKey sessionKey;
     mpz_t sessionInfo, RSAcypher;
     mpz_inits(plain, cypher, temp, sessionKey, RSAcypher, sessionInfo, NULL);
-    //´ò¿ªÎÄ¼ş
+    //æ‰“å¼€æ–‡ä»¶
     {
-	printf("ÊäÈëÊ¹ÓÃSPN+½âÃÜµÄÎÄ¼şÃû:");
+	printf("è¾“å…¥ä½¿ç”¨SPN+è§£å¯†çš„æ–‡ä»¶å:");
 	scanf("%s", buffer);
 	getchar();
 	if ((fp1 = fopen(buffer, "rb")) == NULL)
 	{
-	    printf("ÎÄ¼ş %s ´ò¿ªÊ§°Ü.\n", buffer);
+	    printf("æ–‡ä»¶ %s æ‰“å¼€å¤±è´¥.\n", buffer);
 	    return FILE_OPEN_ERROR;
 	}
-	printf("ÊäÈë½âÃÜºóÎÄ¼şÃû:");
+	printf("è¾“å…¥è§£å¯†åæ–‡ä»¶å:");
 	scanf("%s", buffer);
 	getchar();
 	if ((fp2 = fopen(buffer, "wb")) == NULL)
 	{
-	    printf("½âÃÜÎÄ¼ş´´½¨Ê§°Ü.\n");
+	    printf("è§£å¯†æ–‡ä»¶åˆ›å»ºå¤±è´¥.\n");
 	    return FILE_OPEN_ERROR;
 	}
     }
-    //´Ófp1ÎÄ¼şÍ·¶ÁÈësessionInfo
-    //²¢ÅäÖÃºÃsessionKeyÓëinitVect
+    //ä»fp1æ–‡ä»¶å¤´è¯»å…¥sessionInfo
+    //å¹¶é…ç½®å¥½sessionKeyä¸initVect
     {
 		mpz_inp_raw(RSAcypher, fp1);
 		rsa_decrypt(RSAprvKey, sessionInfo, RSAcypher, 1, mpz_powm);
 		if (rsa_pkcs1_decode(sessionInfo)){
-			printf("RSA pkcs#1 ±àÂë´íÎó.\n");
+			printf("RSA pkcs#1 ç¼–ç é”™è¯¯.\n");
 			getchar();
 			return 2;
 		}
 		mpz_set_ui(temp, 0x1);
 		mpz_mul_2exp(temp, temp, SPN_KEY_LENGTH);
-		mpz_sub_ui(temp, temp, 1);		//ĞÎ³ÉµÍÎ»µÄÂß¼­³ß
-		mpz_and(sessionKey, sessionInfo, temp); //Ê¹ÓÃÂß¼­³ßÈ¡³öµÍÎ»µÄsessionKey
+		mpz_sub_ui(temp, temp, 1);		//å½¢æˆä½ä½çš„é€»è¾‘å°º
+		mpz_and(sessionKey, sessionInfo, temp); //ä½¿ç”¨é€»è¾‘å°ºå–å‡ºä½ä½çš„sessionKey
 		mpz_tdiv_q_2exp(sessionInfo, sessionInfo, SPN_KEY_LENGTH);
 		mpz_export(&initVect, NULL, -1, sizeof(spn_Text), 0, 0, sessionInfo);
-		gmp_printf("±¾´ÎÎÄ¼ş¼ÓÃÜÃÜÔ¿ %d bit : %Zx\n", SPN_KEY_LENGTH, sessionKey);
-		printf("CBCÄ£Ê½³õÊ¼ÏòÁ¿:%llx", initVect);
+		gmp_printf("æœ¬æ¬¡æ–‡ä»¶åŠ å¯†å¯†é’¥ %d bit : %Zx\n", SPN_KEY_LENGTH, sessionKey);
+		printf("CBCæ¨¡å¼åˆå§‹å‘é‡:%llx", initVect);
 		getchar();
     }
-    //CBCÄ£Ê½½âÃÜÎÄ¼şfp1Ğ´Èëfp2
+    //CBCæ¨¡å¼è§£å¯†æ–‡ä»¶fp1å†™å…¥fp2
     spn_Decrypt_cbc(fp1, fp2, sessionKey, &initVect);
-    //ÊÍ·ÅÎÄ¼şÖ¸Õë
+    //é‡Šæ”¾æ–‡ä»¶æŒ‡é’ˆ
     fclose(fp2);
     fclose(fp1);
     mpz_clears(plain, cypher, temp, sessionKey, sessionInfo, RSAcypher, NULL);
@@ -174,19 +174,19 @@ int file_system()
     rsa_init_key(&RSApubKey, &RSAprvKey);
     while (op)
     {
-		printf("RSA & SPN+ ÎÄ¼ş¼ÓÃÜ³ÌĞò\n");
+		printf("RSA & SPN+ æ–‡ä»¶åŠ å¯†ç¨‹åº\n");
 		printf("-------------------\n");
-		printf("1.µ¼ÈëRSA¹«Ô¿¼ÓÃÜÖ¤Êé\n");
-		printf("2.µ¼ÈëRSAË½Ô¿½âÃÜÖ¤Êé\n");
-		printf("3.Ê¹ÓÃRSA¼ÓÃÜÊı¾İ (pkcs#1 padding)\n");
-		printf("4.Ê¹ÓÃ¹«Ô¿¼ÓÃÜÎÄ¼ş\n");
-		printf("5.Ê¹ÓÃË½Ô¿½âÃÜÎÄ¼ş\n");
-		printf("0.·µ»ØÉÏ¼¶²Ëµ¥:\n");
+		printf("1.å¯¼å…¥RSAå…¬é’¥åŠ å¯†è¯ä¹¦\n");
+		printf("2.å¯¼å…¥RSAç§é’¥è§£å¯†è¯ä¹¦\n");
+		printf("3.ä½¿ç”¨RSAåŠ å¯†æ•°æ® (pkcs#1 padding)\n");
+		printf("4.ä½¿ç”¨å…¬é’¥åŠ å¯†æ–‡ä»¶\n");
+		printf("5.ä½¿ç”¨ç§é’¥è§£å¯†æ–‡ä»¶\n");
+		printf("0.è¿”å›ä¸Šçº§èœå•:\n");
 		scanf("%d", &op);
 		getchar();
 		if (op > 5)
 		{
-			printf("´íÎó²Ù×÷Ïî.\n");
+			printf("é”™è¯¯æ“ä½œé¡¹.\n");
 			getchar();
 			continue;
 		}
@@ -201,33 +201,33 @@ int file_system()
 		{
 		case 1:
 		{
-			printf("ÊäÈë¹«Ô¿Ö¤ÊéÃû:");
+			printf("è¾“å…¥å…¬é’¥è¯ä¹¦å:");
 			scanf("%s", buffer);
 			getchar();
 			if ((fp1 = fopen(buffer, "rb")) == NULL)
 				break;
 			if ((flag = rsa_imp_puk(fp1, &RSApubKey)) == 3)
 			{
-				printf("¶ÁÈ¡RSAËã·¨²ÎÊı´íÎó.\n");
-				printf("¼ì²é´óÊı¸ñÊ½Óëgmpº¯Êı¿â.\n");
+				printf("è¯»å–RSAç®—æ³•å‚æ•°é”™è¯¯.\n");
+				printf("æ£€æŸ¥å¤§æ•°æ ¼å¼ä¸gmpå‡½æ•°åº“.\n");
 				break;
 			}
 			else if (flag == 2)
 			{
-				printf("Ö¤Êé¸ñÊ½´íÎó.\n");
+				printf("è¯ä¹¦æ ¼å¼é”™è¯¯.\n");
 				break;
 			}
 			else if (flag)
 			{
-				printf("´ò¿ªÖ¤Êé´íÎó.\n");
+				printf("æ‰“å¼€è¯ä¹¦é”™è¯¯.\n");
 				break;
 			}
 			else
 			{
 				printf("----------------------------------------------------\n");
-				gmp_printf("¹«¹²¼ÓÃÜÖ¸Êı:%Zx\n", RSApubKey.publicExponent);
+				gmp_printf("å…¬å…±åŠ å¯†æŒ‡æ•°:%Zx\n", RSApubKey.publicExponent);
 				printf("----------------------------------------------------\n");
-				gmp_printf("Ä£Êı:%Zx\n", RSApubKey.modulus);
+				gmp_printf("æ¨¡æ•°:%Zx\n", RSApubKey.modulus);
 				printf("----------------------------------------------------\n");
 			}
 			pubf = 1;
@@ -236,31 +236,31 @@ int file_system()
 		}
 		case 2:
 		{
-			printf("ÊäÈëË½Ô¿Ö¤ÊéÃû:");
+			printf("è¾“å…¥ç§é’¥è¯ä¹¦å:");
 			scanf("%s", buffer);
 			getchar();
 			if ((fp1 = fopen(buffer, "rb")) == NULL)
 				break;
 			if ((flag = rsa_imp_prk(fp1, &RSAprvKey)) == 3)
 			{
-				printf("¶ÁÈ¡RSAËã·¨²ÎÊı´íÎó.\n");
-				printf("¼ì²é´óÊı¸ñÊ½Óëgmpº¯Êı¿â.\n");
+				printf("è¯»å–RSAç®—æ³•å‚æ•°é”™è¯¯.\n");
+				printf("æ£€æŸ¥å¤§æ•°æ ¼å¼ä¸gmpå‡½æ•°åº“.\n");
 				break;
 			}
 			else if (flag == 2)
 			{
-				printf("Ö¤Êé¸ñÊ½´íÎó.\n");
+				printf("è¯ä¹¦æ ¼å¼é”™è¯¯.\n");
 				break;
 			}
 			else if (flag)
 			{
-				printf("´ò¿ªÖ¤Êé´íÎó.\n");
+				printf("æ‰“å¼€è¯ä¹¦é”™è¯¯.\n");
 				break;
 			}
 			else
 			{
 				printf("----------------------------------------------------\n");
-				gmp_printf("Ë½Ô¿:\nË½ÓĞÖ¸Êı : %Zx\n", RSAprvKey.privateExponet);
+				gmp_printf("ç§é’¥:\nç§æœ‰æŒ‡æ•° : %Zx\n", RSAprvKey.privateExponet);
 				printf("----------------------------------------------------\n");
 			}
 			prvf = 1;
@@ -271,7 +271,7 @@ int file_system()
 		{
 			if (prvf && pubf)
 			{
-				printf("ÊäÈëÊ¹ÓÃRSA¼ÓÃÜµÄÃ÷ÎÄ:\n");
+				printf("è¾“å…¥ä½¿ç”¨RSAåŠ å¯†çš„æ˜æ–‡:\n");
 				gmp_scanf("%Zx", plain);
 				mpz_set(temp, plain);
 				getchar();
@@ -280,23 +280,23 @@ int file_system()
 				rsa_pkcs1_encode(temp, 2);
 				rsa_encrypt(&RSApubKey, temp, cypher, mpz_powm);
 				t2 = clock();
-				printf("RSA¼ÓÃÜÓÃÊ±:%ld ms\n", t2 - t1);
+				printf("RSAåŠ å¯†ç”¨æ—¶:%ld ms\n", t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("ÃÜÎÄ:\n%Zx\n", cypher);
+				gmp_printf("å¯†æ–‡:\n%Zx\n", cypher);
 				printf("----------------------------------------------------\n");
 				t1 = clock();
 				rsa_decrypt(&RSAprvKey, temp, cypher, 1, mpz_powm);
 				rsa_pkcs1_decode(temp);
 				t2 = clock();
-				printf("RSA½âÃÜÓÃÊ±:%ld ms\n", t2 - t1);
+				printf("RSAè§£å¯†ç”¨æ—¶:%ld ms\n", t2 - t1);
 				printf("----------------------------------------------------\n");
-				gmp_printf("½âÃÜºóÏûÏ¢:\n%Zx\n", temp);
+				gmp_printf("è§£å¯†åæ¶ˆæ¯:\n%Zx\n", temp);
 				printf("----------------------------------------------------\n");
 				if (mpz_cmp(temp, plain) != 0)
-					printf("½âÃÜÏûÏ¢´íÎó.\n");
+					printf("è§£å¯†æ¶ˆæ¯é”™è¯¯.\n");
 			}
 			else
-			printf("RSAËã·¨²ÎÊıÈ±Ê§.\n");
+			printf("RSAç®—æ³•å‚æ•°ç¼ºå¤±.\n");
 			break;
 		}
 		case 4:

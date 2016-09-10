@@ -13,14 +13,14 @@ typedef struct {
 	RoundKey roundKey[RoundNum + 1];
 }Key;
 
-//Íâ²¿±äÁ¿ÉùÃ÷
+//å¤–éƒ¨å˜é‡å£°æ˜
 extern Key spn_Key;
 extern mapping spn_Sub[sBits * sNum], spn_Per[sBits * sNum], 
 				spn_rSub[sBits * sNum], spn_rPer[sBits * sNum];
 
 int spn_Init();
 
-int KeyGen(Key* key);	//ÃÜÔ¿±àÅÅ
+int KeyGen(Key* key);	//å¯†é’¥ç¼–æ’
 
 int spn_SetKey(MainKey input);
 
@@ -34,10 +34,10 @@ spn_Text spn_Decrypt_raw(spn_Text * plain, spn_Text * cypher);
 
 int mgen();
 
-spn_Text Permutation(spn_Text input, mapping* per);	//ÖÃ»»²Ù×÷
+spn_Text Permutation(spn_Text input, mapping* per);	//ç½®æ¢æ“ä½œ
 
-spn_Text Substitution(spn_Text input, mapping* sub);	//SºĞÌæ»»
+spn_Text Substitution(spn_Text input, mapping* sub);	//Sç›’æ›¿æ¢
 
 mapping SBox(mapping input, mapping* sub);
 
-void reverse(mapping* original, mapping* reversed);		//SºĞ/PÖÃ»»ÇóÄæ
+void reverse(mapping* original, mapping* reversed);		//Sç›’/Pç½®æ¢æ±‚é€†

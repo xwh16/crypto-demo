@@ -174,26 +174,26 @@ chain findChain_linear()
 	getchar();
 	u = x;
 	bias = 1;
-	//ÖğÂÖËÑË÷ÕÒµ½×î´óspn±Æ½ü
+	//é€è½®æœç´¢æ‰¾åˆ°æœ€å¤§spné€¼è¿‘
 	for (r = 0; r < RoundNum - 1; r++) {
 		printf("\nRound %d\n", r + 1);
 		printf("Probability bias now is : %lf\n", bias / 2);
 		printf("--------------------------------\n");
 		printf("...In  Vectors  : ");
 		printb(u, 4);
-		//±ê¼Ç»î¶¯µÄsºĞ
+		//æ ‡è®°æ´»åŠ¨çš„sç›’
 		printf("...Active S-Box : ");
 		for (sId = sNum - 1; sId >= 0; sId--) {
-			sIn[r][sId] = (u >> sId * 4) & 0xf;	//¶Ôu½øĞĞ²ğ·Ö 3210
+			sIn[r][sId] = (u >> sId * 4) & 0xf;	//å¯¹uè¿›è¡Œæ‹†åˆ† 3210
 			if ((u & (0xf << (sId * 4))) != 0) {
 				smark[sId] = 1;
-				printf("|  S%d  |", 4 - sId);	//×ª»»Îª´ó¶ËÏÔÊ¾
+				printf("|  S%d  |", 4 - sId);	//è½¬æ¢ä¸ºå¤§ç«¯æ˜¾ç¤º
 			}
 			else
 				smark[sId] = 0;
 		}
 		printf("\n");
-		//¶Ô»î¶¯µÄsºĞÑ°ÕÒ×î´óÏßĞÔ±Æ½ü
+		//å¯¹æ´»åŠ¨çš„sç›’å¯»æ‰¾æœ€å¤§çº¿æ€§é€¼è¿‘
 		v = 0;
 		for (sId = sNum - 1; sId >= 0; sId--) {
 			if (smark[sId] == 0) {
@@ -205,10 +205,10 @@ chain findChain_linear()
 				scanf("%hx", &sOut[r][sId]);
 				getchar();
 				v = v ^ (sOut[r][sId] << sId * 4);
-				bias = 2 * bias * (approxTable[sIn[r][sId]][sOut[r][sId]] - 8) / 16;	//ÏßĞÔÁ´µÄ¸ÅÂÊÆ«²î
+				bias = 2 * bias * (approxTable[sIn[r][sId]][sOut[r][sId]] - 8) / 16;	//çº¿æ€§é“¾çš„æ¦‚ç‡åå·®
 			}
 		}
-		//¸ù¾İÑ¡ÔñµÄsºĞÊä³öPÖÃ»»µÃµ½ÏÂÒ»ÂÖµÄËæ»ú±äÁ¿ÊäÈë
+		//æ ¹æ®é€‰æ‹©çš„sç›’è¾“å‡ºPç½®æ¢å¾—åˆ°ä¸‹ä¸€è½®çš„éšæœºå˜é‡è¾“å…¥
 		u = Permutation(v, spn_Per);
 		printf("...Out Vectors  : ");
 		printb(v, 4);
@@ -222,7 +222,7 @@ chain findChain_linear()
 		linear_chain.x[sId] = sIn[0][sId];
 		linear_chain.y[sId] = (y >> sId * 4) & 0xf;
 		if (u & (0xf << 4 * sId))
-			c++;	//Í³¼ÆÓ°ÏìµÄÃÜÔ¿±ÈÌØ
+			c++;	//ç»Ÿè®¡å½±å“çš„å¯†é’¥æ¯”ç‰¹
 	}
 	linear_chain.bias = bias / 2;
 	linear_chain.keyNum = c;
@@ -243,7 +243,7 @@ chain findChain_linear()
 void findKey_linear(chain linear_chain)
 {
 	int i, j;
-	int *counter;	//ºòÑ¡ÃÜÔ¿¼ÆÊıÆ÷Ö¸Õë
+	int *counter;	//å€™é€‰å¯†é’¥è®¡æ•°å™¨æŒ‡é’ˆ
 	int key, maxcount, maxkey;
 	char *u, *v;
 	char *mark;
@@ -254,20 +254,20 @@ void findKey_linear(chain linear_chain)
 	v = (char*)malloc(sizeof(char) * linear_chain.keyNum);
 	mark = (char*)malloc(sizeof(char) * linear_chain.keyNum);
 	counter = (int*)malloc(sizeof(int) * pow(2, 4 * linear_chain.keyNum));
-	//·ÖÅä²¢³õÊ¼»¯ÃÜÔ¿¼ÆÊıÆ÷
+	//åˆ†é…å¹¶åˆå§‹åŒ–å¯†é’¥è®¡æ•°å™¨
 	for (i = 0; i < pow(2, 4 * linear_chain.keyNum); i++)
 		counter[i] = 0;
-	//v/uÏÂ±êÓëÊµ¼ÊÎ»ÖÃµÄ¹ØÏµ
+	//v/uä¸‹æ ‡ä¸å®é™…ä½ç½®çš„å…³ç³»
 	for (i = 0, j = 0; i < sNum; i++)
 		if (linear_chain.y[i] != 0)
 			mark[j++] = i;	//3210
 	srand(time(0));
-	//²âÊÔpairNum¸öÃ÷ÃÜÎÄ¶Ô
+	//æµ‹è¯•pairNumä¸ªæ˜å¯†æ–‡å¯¹
 	t1 = clock();
 	for (i = 0; i < linear_chain.pairNum; i++) {
-		plain = rand() % 0xffff;	//Éú³É16bitµÄËæ»úÃ÷ÎÄ
+		plain = rand() % 0xffff;	//ç”Ÿæˆ16bitçš„éšæœºæ˜æ–‡
 		spn_Encrypt_raw(&plain, &cypher);
-		//²âÊÔºòÑ¡ÃÜÔ¿
+		//æµ‹è¯•å€™é€‰å¯†é’¥
 		for (key = 0; key < pow(2, 4 * linear_chain.keyNum); key++) {
 			z = 0;
 			for (j = 0; j < linear_chain.keyNum; j++) {
@@ -281,7 +281,7 @@ void findKey_linear(chain linear_chain)
 				counter[key]++;
 		}
 	}
-	//±éÀú¼ÆÊıÆ÷Ñ°ÕÒT/2×î´óÆ«ÒÆÁ¿
+	//éå†è®¡æ•°å™¨å¯»æ‰¾T/2æœ€å¤§åç§»é‡
 	maxcount = 0;
 	for (key = 0; key < pow(2, 4 * linear_chain.keyNum); key++) {
 		counter[key] = abs(counter[key] - linear_chain.pairNum / 2);
