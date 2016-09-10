@@ -18,6 +18,7 @@ extern Key spn_Key;
 extern mapping spn_Sub[sBits * sNum], spn_Per[sBits * sNum], 
 				spn_rSub[sBits * sNum], spn_rPer[sBits * sNum];
 
+int spn_Init();
 
 int KeyGen(Key* key);	//√‹‘ø±‡≈≈
 

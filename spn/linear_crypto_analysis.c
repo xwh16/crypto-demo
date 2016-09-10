@@ -72,7 +72,7 @@ int keyCracker(spn_Text *p1, spn_Text *p2, int num)
 	MainKey key;
 	spn_Text temp;
 	t1 = clock();
-	for (i = pow(2, 24); i >= 0; i--) {
+	for (i = (int)pow(2, 24); i >= 0; i--) {
 		key = ((i & 0xf) << 4) ^ ((i >> 4) << 12) ^ 0x60f;
 		spn_SetKey(key);
 		for (j = 0; j < num; j++) {

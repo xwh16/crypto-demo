@@ -1,16 +1,15 @@
 
 #define _CRT_SECURE_NO_WARNINGS
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include <Windows.h>
 #include "..\gmp.h"
 #include "spn+.h"
 
-Key spn_Key;
-mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];
-mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];
-gmp_randstate_t state;
+Key spn_Key;	//SPN密钥结构
+mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];	//S, P盒置换LUT
+mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];	//S, P盒逆置换
 
 //AES-S盒替换
 const mapping spn_Sub_default[256] =
@@ -45,6 +44,7 @@ const mapping spn_Per_default[sBits * sNum] =
 	0x07, 0x17, 0x1E, 0x25, 0x27, 0x2A, 0x2F, 0x32
 };
 
+//配置默认的S盒P盒
 int spn_Init()
 {
 	spn_SetSub((mapping*)spn_Sub_default);
@@ -52,46 +52,53 @@ int spn_Init()
 	return 0;
 }
 
-int spn_SetKey(MainKey input)
+//配置SPN网络的轮密钥
+int spn_SetKey(MainKey inputKey)
 {
 	mpz_init(spn_Key.initKey);
-	mpz_set(spn_Key.initKey, input);
+	mpz_set(spn_Key.initKey, inputKey);
 	KeyGen(&spn_Key);
 	return 0;
 }
 
+//SPN轮密钥编排算法
 int KeyGen(Key* key)
 {
-	mpz_t temp;
 	int round;
+	mpz_t temp;
 	mpz_init(temp);
 	mpz_set(temp, key->initKey);
 	for (round = 0; round <= RoundNum; round++) {
-		mpz_tdiv_q_2exp(temp, key->initKey, RoundNum * 4 - 4 * round);
-		mpz_export(&(key->roundKey[round]), NULL, -1, sizeof(int), 0, 0, temp);
+		mpz_tdiv_q_2exp(temp, key->initKey, RoundNum * 4 - round * 4);
+		mpz_export(&(key->roundKey[round]), NULL, -1, sizeof(unsigned long long), 0, 0, temp);
 	}
 	mpz_clear(temp);
 	return 0;
 }
 
+//配置input指向缓冲区为SPN的S盒
 int spn_SetSub(mapping* input)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
 		spn_Sub[i] = input[i];
+	//调用reverse导出S盒的逆替换
 	reverse(spn_Sub, spn_rSub, SBOX_LENGTH);
 	return 0;
 }
 
+//配置input指向缓冲区为SPN的P盒
 int spn_SetPer(mapping* input)
 {
 	int i;
 	for (i = 0; i < sBits * sNum; i++)
 		spn_Per[i] = input[i];
+	//调用reverse导出P盒的逆替换
 	reverse(spn_Per, spn_rPer, sBits * sNum);
 	return 0;
 }
 
+//对input的数据进行P盒置换
 spn_Text Permutation(spn_Text input, mapping* per)
 {
 	spn_Text bitmask, output = 0;
@@ -106,6 +113,7 @@ spn_Text Permutation(spn_Text input, mapping* per)
 	return output;
 }
 
+//对input的数据进行S盒替换
 spn_Text Substitution(spn_Text input, mapping* sub)
 {
 	int i;
@@ -118,11 +126,16 @@ spn_Text Substitution(spn_Text input, mapping* sub)
 	return output;
 }
 
+//单字节的S盒替换
+//使用LUT快速实现
 char SBox(unsigned char input, mapping* sub)
 {
 	return sub[input];
 }
 
+//导出origianl中length长度变换的逆变换
+//变换结果写入已分配空间的reversed
+//可用于SPN结构的S盒与P盒
 void reverse(mapping* original, mapping* reversed, int length)
 {
 	int i;
@@ -130,6 +143,7 @@ void reverse(mapping* original, mapping* reversed, int length)
 		reversed[original[i]] = i;
 }
 
+//SPN网络底层元数据加密
 spn_Text spn_Encrypt_raw(spn_Text *plain, spn_Text *cypher)
 {
 	int round;
@@ -147,6 +161,7 @@ spn_Text spn_Encrypt_raw(spn_Text *plain, spn_Text *cypher)
 	return temp;
 }
 
+//SPN网络底层元数据解密
 spn_Text spn_Decrypt_raw(spn_Text *plain, spn_Text *cypher)
 {
 	int round = RoundNum;
@@ -164,6 +179,7 @@ spn_Text spn_Decrypt_raw(spn_Text *plain, spn_Text *cypher)
 	return temp;
 }
 
+//CBC模式下SPN网络一次元数据加密
 void spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
@@ -171,6 +187,7 @@ void spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 	spn_Encrypt_raw(&temp, cypher);
 }
 
+//CBC模式下SPN网络一次元数据解密
 void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
@@ -178,6 +195,117 @@ void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 	*plain = temp ^ *vect;
 }
 
+//CBC模式的文件加密
+int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
+{
+	clock_t t1, t2;
+	unsigned long long i, size, rblock;
+	spn_Text plain, cypher, vect;
+
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp);	//文件大小 (字节数)
+	rewind(fp);	//还原文件指针
+
+	i = 0;
+	plain = 0;
+	spn_SetKey(sessionKey);	
+	vect = *initVect;
+	printf("加密开始>>>\n");
+	t1 = clock();	//开始计时
+	while (fread(&plain, sizeof(spn_Text), 1, fp)) {
+		#ifdef FILE_SHOW_STATUS
+			printf("\r--------%.2lf%%--------", ((double)i * sizeof(spn_Text) / size) * 100);
+		#endif
+		spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
+		if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
+			printf("加密数据写入失败.\n");
+			return 2;
+		}
+		plain = 0;
+		vect = cypher;
+		i++;
+	}
+	//当存在短块时进行短块处理
+	//采用pkcs#7 v1.5标准填充
+	//rblock记录要填充的字节数
+	rblock = sizeof(spn_Text) - (int)(size - i * sizeof(spn_Text));
+	if (rblock) {
+		for (i = 1; i <= rblock; i++) {
+			plain = plain ^ (rblock << (8 * (sizeof(spn_Text) - i)));
+		}
+	}
+	else {
+		//满块时额外填充一块0xffff...
+		plain = -1;
+	}
+	spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
+	if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
+		printf("加密<短块>数据写入失败.\n");
+		return 2;
+	}
+	t2 = clock();	//结束计时
+	printf("\r--------100%%--------");
+	printf("\n文件加密完毕.\n");
+	printf("本次加密耗时 : %ld ms\n", t2 - t1);
+	return 0;
+}
+
+//CBC模式的文件解密
+int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
+{
+	clock_t t1, t2;
+	char pad;
+	unsigned long long i, size, hpos;
+	spn_Text plain, cypher, vect;
+
+	hpos = ftell(fp);	//文件头位置(会话参数)
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp) - hpos;	//文件大小 (分组长度)
+	fsetpos(fp, &hpos);	//还原文件指针
+
+	i = 1;
+	plain = 0;
+	spn_SetKey(sessionKey);
+	vect = *initVect;
+	printf("解密开始>>>\n");
+	t1 = clock();	//开始计时
+	while (i * sizeof(spn_Text) < size) {
+		fread(&cypher, sizeof(spn_Text), 1, fp);
+		#ifdef FILE_SHOW_STATUS
+			printf("\r--------%.2lf%%--------", ((double)i * sizeof(spn_Text) / size) * 100);
+		#endif
+		spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
+		if (fwrite(&plain, sizeof(spn_Text), 1, dfp) == 0) {
+			printf("解密数据写入失败.\n");
+			return 2;
+		}
+		vect = cypher;
+		i++;
+	}
+	//当i<size时进行短块处理
+	//采用pkcs#7 v1.5标准填充
+	//rblock记录多出的字节数
+	fread(&cypher, sizeof(spn_Text), 1, fp);
+	spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
+	pad = (spn_Text)0xff & (plain >> 56);
+	if (pad < sizeof(spn_Text)) {
+		for (i = 1; i <= pad; i++) {
+			plain = plain ^ ((spn_Text)pad << (8 * (sizeof(spn_Text) - i)));
+		}
+		if (fwrite(&plain, sizeof(spn_Text) - pad, 1, dfp) == 0) {
+			printf("解密<短块>数据写入失败.\n");
+			return 2;
+		}
+	}
+	t2 = clock();	//结束计时
+	printf("\r--------100%%--------");
+	printf("\n文件解密完毕.\n");
+	printf("本次解密耗时 : %ld ms\n", t2 - t1);
+	return 0;
+}
+
+//以CBC模式生成指定字节大小的二进制密文数据
+//用于随机性检测
 int mgen()
 {
 	FILE *fp;
@@ -207,118 +335,18 @@ int mgen()
 	return 0;
 }
 
-int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
-{
-	clock_t t1, t2;
-	unsigned long long i;
-	unsigned long long size, rblock;
-	spn_Text plain, cypher, vect;
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp);	//文件大小 (字节数)
-	rewind(fp);
-	i = 0;
-	plain = 0;
-	spn_SetKey(sessionKey);
-	vect = *initVect;
-	printf("加密开始>>>\n");
-	t1 = clock();
-	while (fread(&plain, sizeof(spn_Text), 1, fp)) {
-		//printf("\r--------%.2lf%%--------", ((double)i * sizeof(spn_Text) / size) * 100);
-		spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
-		if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
-			printf("加密数据写入失败.\n");
-			return 2;
-		}
-		plain = 0;
-		vect = cypher;
-		i++;
-	}
-	//当存在短块时进行短块处理
-	//采用pkcs#7 v1.5标准填充
-	//rblock记录要填充的字节数
-	rblock = sizeof(spn_Text) - (int)(size - i * sizeof(spn_Text));
-	if (rblock) {
-		for (i = 1; i <= rblock; i++) {
-			plain = plain ^ (rblock << (8 * (sizeof(spn_Text) - i)));
-		}
-	}
-	else {
-		plain = -1;
-	}
-	spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
-	if (fwrite(&cypher, sizeof(spn_Text), 1, efp) == 0) {
-		printf("加密<短块>数据写入失败.\n");
-		return 2;
-	}
-	t2 = clock();
-	printf("\r--------100%%--------");
-	printf("\n文件加密完毕.\n");
-	printf("本次加密耗时 : %ld ms\n", t2 - t1);
-	return 0;
-}
-
-int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect)
-{
-	clock_t t1, t2;
-	char pad;
-	unsigned long long i;
-	unsigned long long size, hpos;
-	spn_Text plain, cypher, vect;
-	hpos = ftell(fp);	//文件头位置(会话参数)
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp) - hpos;	//文件大小 (分组长度)
-	fsetpos(fp, &hpos);
-	i = 1;
-	plain = 0;
-	spn_SetKey(sessionKey);
-	vect = *initVect;
-	printf("解密开始>>>\n");
-	t1 = clock();
-	while (i * sizeof(spn_Text) < size) {
-		fread(&cypher, sizeof(spn_Text), 1, fp);
-		//printf("\r--------%.2lf%%--------", ((double)i * sizeof(spn_Text) / size) * 100);
-		spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
-		if (fwrite(&plain, sizeof(spn_Text), 1, dfp) == 0) {
-			printf("解密数据写入失败.\n");
-			return 2;
-		}
-		vect = cypher;
-		i++;
-	}
-	//当i<size时进行短块处理
-	//采用pkcs#7 v1.5标准填充
-	//rblock记录多出的字节数
-	fread(&cypher, sizeof(spn_Text), 1, fp);
-	spn_Decrypt_cbc_raw(&plain, &cypher, &vect);
-	pad = (spn_Text)0xff & (plain >> 56);
-	if (pad < sizeof(spn_Text)) {
-		for (i = 1; i <= pad; i++) {
-			plain = plain ^ ((spn_Text)pad << (8 * (sizeof(spn_Text) - i)));
-		}
-		if (fwrite(&plain, sizeof(spn_Text) - pad, 1, dfp) == 0) {
-			printf("解密<短块>数据写入失败.\n");
-			return 2;
-		}
-	}
-	t2 = clock();
-	printf("\r--------100%%--------");
-	printf("\n文件解密完毕.\n");
-	printf("本次解密耗时 : %ld ms\n", t2 - t1);
-	return 0;
-}
-
 int spn_test()
 {
 	int i, op = 1;
 	MainKey inputKey;
 	spn_Text plain, cypher;
+	gmp_randstate_t state;	//GMP随机数状态
 	mpz_init(inputKey);
 	spn_Init();
 	while (op) {
-		system("cls");
 		printf("增强SPN测试程序\n");
 		printf("-------------------\n");
-		printf("1.随机生成SPN主密钥 %d bit\n", sNum * sBits + (RoundNum - 1) * 4);
+		printf("1.随机生成SPN主密钥 %d bit\n", SPN_KEY_LENGTH);
 		printf("2.使用SPN 加密\n");
 		printf("3.导出测试文件\n");
 		printf("0.返回上级菜单\n");
@@ -332,13 +360,12 @@ int spn_test()
 		else if (op == 0) {
 			return 0;
 		}
-		system("cls");
 		switch (op) {
 		case 1:
 			gmp_randinit_lc_2exp_size(state, 128);	//设置随机数状态state
 			gmp_randseed_ui(state, (unsigned long)time(NULL));
-			mpz_urandomb(inputKey, state, sNum * sBits + (RoundNum - 1) * 4);	//生成随机数num
-			gmp_printf("Main Key %d bit : %Zx\n", sNum * sBits + (RoundNum - 1) * 4, inputKey);
+			mpz_urandomb(inputKey, state, SPN_KEY_LENGTH);	//生成随机数num
+			gmp_printf("Main Key %d bit : %Zx\n", SPN_KEY_LENGTH, inputKey);
 			spn_SetKey(inputKey);
 			for (i = 0; i <= RoundNum; i++)
 				printf("> roundKey[%d] = %#llx\n", i + 1, spn_Key.roundKey[i]);

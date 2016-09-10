@@ -1,139 +1,18 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include <string.h>
-#include <Windows.h>
 #include "..\gmp.h"
 #include "rsa.h"
 #include "powm.h"
+#include "ntheorem.h"
 
 gmp_randstate_t state;
 char str1[30] = { "-----BEGIN CERTIFICATE-----" };
 char str2[30] = { "-----END CERTIFICATE-----" };
-
-void gcd(mpz_t rop, mpz_t num1, mpz_t num2)
-{
-	mpz_t r0, r1, q, temp;
-	mpz_inits(r0, r1, q, temp, NULL);
-	mpz_set(r0, num1);
-	mpz_set(r1, num2);
-	while (mpz_cmp_ui(r1, 0) != 0) {
-		mpz_tdiv_q(q, r0, r1);	//q<m> = [r<m-1> / r<m>]
-		mpz_mul(q, q, r1);
-		mpz_set(temp, r1);
-		mpz_sub(r1, r0, q);	//r<m+1> = r<m-1> - q<m> * r<m>
-		mpz_set(r0, temp);
-	}
-	mpz_set(rop, r0);
-	mpz_clears(r0, r1, q, temp, NULL);
-}
-
-bool Mul_Invert(mpz_t rop, mpz_t num, mpz_t mod)
-{
-	mpz_t a, b, t0, t1, q, r, temp;
-	mpz_inits(a, b, t0, t1, q, r, temp, NULL);
-	mpz_set(a, mod);
-	mpz_set(b, num);
-	mpz_set_ui(t0, 0);
-	mpz_set_ui(t1, 1);
-	mpz_tdiv_q(q, a, b);
-	mpz_mul(temp, q, b);
-	mpz_sub(r, a, temp);
-	while (mpz_cmp_ui(r, 0) > 0) {
-		mpz_mul(temp, q, t1);
-		mpz_sub(temp, t0, temp);
-		mpz_set(t0, t1);
-		mpz_set(t1, temp);
-		mpz_set(a, b);
-		mpz_set(b, r);
-		mpz_tdiv_q(q, a, b);
-		mpz_mul(temp, q, b);
-		mpz_sub(r, a, temp);
-	}
-	if (mpz_cmp_ui(b, 1) == 0) {
-		mpz_mod(t1, t1, mod);
-		mpz_set(rop, t1);
-		mpz_clears(a, b, t0, t1, q, r, temp, NULL);
-		return true;
-	}
-	else {
-		mpz_clears(a, b, t0, t1, q, r, temp, NULL);
-		return false;
-	}
-}
-
-bool modEqual(mpz_t num, int target, mpz_t modulus)
-{
-	mpz_t residue, temp;
-	mpz_inits(residue, temp, NULL);
-	mpz_set_si(temp, target);
-	mpz_mod(residue, num, modulus);
-	mpz_mod(temp, temp, modulus);
-	if (mpz_cmp(residue, temp) == 0) {
-		mpz_clears(residue, temp, NULL);
-		return true;
-	}
-	else {
-		mpz_clears(residue, temp, NULL);
-		return false;
-	}
-}
-
-bool oddTest(mpz_t num)
-{
-	if (mpz_tstbit(num, 0) == 1)
-		return true;
-	else
-		return false;
-}
-
-bool primeTest(mpz_t num, int round)
-{
-	while (round-- > 0) {
-		if (Miller_Rabin(num) == false) 
-			return false;
-	}
-	return true;
-}
-
-bool Miller_Rabin(mpz_t n)	
-{
-	int k = 0, i;
-	mpz_t m, a, b;
-	mpz_inits(m, a, b, NULL);
-	mpz_sub_ui(m, n, 1);	//m = n- 1
-	mpz_urandomm(a, state, m);	//generate random number a
-	mpz_add_ui(a, a, 1);
-	do {
-		mpz_tdiv_q_2exp(m, m, 1);
-		k++;
-	} while (oddTest(m) == false);	//m = (n - 1) / 2^k
-	modPow(b, a, m, n);	//b = a ^ m mod n
-	if (modEqual(b, 1, n)) {
-		return true;	//b == 1 mod n
-	}
-	for (i = 0; i < k; i++) {
-		if (modEqual(b, -1, n)) {
-			mpz_clears(a, b, m, NULL);
-			return true;	//b == -1 mod n
-		}
-		else {
-			mpz_mul(b, b, b);
-			mpz_mod(b, b, n);
-		}	//b = b ^ 2 mod n
-	}
-	mpz_clears(a, b, m, NULL, NULL);
-	return false;
-}
-
-void modPow(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t mod)
-{
-	//Bin_Exp(rop, base, exp, mod);
-	//Mont_Exp_v2(rop, base, exp, mod);
-	mpz_powm(rop, base, exp, mod);
-}
 
 void randomPrime(mpz_t num, int key_length, int round)
 {
@@ -175,15 +54,17 @@ void rsa_generate_key(RSAPublicKey* puk, RSAPrvateKey* prk, int key_length, int 
 	mpz_sub_ui(buf1, prk->prime1, 1);	//p-1
 	mpz_sub_ui(buf2, prk->prime2, 1);	//q-1
 	mpz_mul(totient, buf1, buf2);		//totient(n)=(p-1)*(q-1)
-	//do {
-	//	mpz_urandomm(prk->publicExponet, state, totient);
-	//	gcd(g, prk->publicExponet, totient);
-	//} while (mpz_cmp_ui(g, 1));	//test if e and totient(n) are coprime
+	do {
+		mpz_urandomm(prk->publicExponet, state, totient);
+		gcd(g, prk->publicExponet, totient);
+	} while (mpz_cmp_ui(g, 1));	//test if e and totient(n) are coprime
 
 	//使用2^16+1作为公钥
+	/*
 	mpz_init(prk->publicExponet);
 	mpz_setbit(prk->publicExponet, 16);
 	mpz_setbit(prk->publicExponet, 0);
+	*/
 
 	mpz_mod(prk->publicExponet, prk->publicExponet, totient);
 	Mul_Invert(prk->privateExponet, prk->publicExponet, totient);
@@ -346,8 +227,10 @@ int rsa_pkcs1_encode(mpz_t message, int bt) {
 	case 2: {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 1);
 		mpz_setbit(message, RSA_KEY_LENGTH - 31);
-		mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//生成填充串Pstring
-																						//8-size%8使得Pstring位数为8的倍数
+		do {
+			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//生成填充串Pstring
+																							//8-size%8使得Pstring位数为8的倍数
+		} while(mpz_sizeinbase(Pstring, 2) != RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));
 		rsa_pad_check(Pstring, 1);	//使用非0字节替换Pstring中的0字节
 		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 2 * 8);	//左移Pstring空出2个0字节
 		mpz_xor(message, message, Pstring);
@@ -376,11 +259,11 @@ int rsa_pkcs1_decode(mpz_t message)
 	if (mpz_tstbit(message, RSA_KEY_LENGTH - 31)) {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 31);
 		pos = rsa_pad_seek(message);
-		mpz_tdiv_q_2exp(Pstring, message, RSA_KEY_LENGTH - 8 * (4 + pos));
+		mpz_tdiv_q_2exp(Pstring, message, RSA_KEY_LENGTH - 8 * (3 + pos));
 		if (rsa_pad_check(Pstring, 0))
 			return 1;
 		else {
-			mpz_mul_2exp(Pstring, Pstring, RSA_KEY_LENGTH - 8 * (4 + pos));
+			mpz_mul_2exp(Pstring, Pstring, RSA_KEY_LENGTH - 8 * (3 + pos));
 			mpz_xor(message, message, Pstring);
 		}
 	}
@@ -439,7 +322,6 @@ int rsa_test()
 	mpz_inits(plain, cypher, temp, NULL);
 	rsa_init_key(&RSApubKey, &RSAprvKey);
 	while (op) {
-		system("cls");
 		printf("1024位RSA验证测试程序\n");
 		printf("-------------------\n");
 		printf("1.生成RSA算法参数:\n");
@@ -459,7 +341,6 @@ int rsa_test()
 			rsa_quit();
 			return 0;
 		}
-		system("cls");
 		switch (op) {
 		case 1: {
 			t1 = clock();
@@ -507,7 +388,7 @@ int rsa_test()
 				printf("----------------------------------------------------\n");
 				t1 = clock();
 				for (i = 0; i < COUNT; i++) {
-					rsa_encrypt(&RSApubKey, plain, cypher, Mont_Exp_32);
+					rsa_encrypt(&RSApubKey, plain, cypher, Mont_Exp);
 				}
 				t2 = clock();
 				printf("2.%d次 RSA加密 蒙哥马利法:%ld ms\n", COUNT, t2 - t1);
@@ -547,7 +428,7 @@ int rsa_test()
 				printf("----------------------------------------------------\n");
 				t1 = clock();
 				for (i = 0; i < COUNT; i++) {
-					rsa_decrypt(&RSAprvKey, temp, cypher, 0, Mont_Exp_32);
+					rsa_decrypt(&RSAprvKey, temp, cypher, 0, Mont_Exp);
 				}
 				t2 = clock();
 				printf("b.%d次 RSA解密 蒙哥马利法:%ld ms\n", COUNT, t2 - t1);
@@ -591,7 +472,7 @@ int rsa_test()
 				printf("----------------------------------------------------\n");
 				t1 = clock();
 				for (i = 0; i < COUNT; i++) {
-					rsa_decrypt(&RSAprvKey, temp, cypher, 1, Mont_Exp_32);
+					rsa_decrypt(&RSAprvKey, temp, cypher, 1, Mont_Exp);
 				}
 				t2 = clock();
 				printf("B.%d次 RSA解密 蒙哥马利法 + 中国剩余定理:%ld ms\n", COUNT, t2 - t1);

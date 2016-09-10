@@ -7,7 +7,7 @@
 #include "powm.h"
 
 //启用蒙哥马利正确性测试
-#define MONT_CHECK
+//#define MONT_CHECK
 
 //Mont_Test的测试次数
 #define TESTCOUNT 100
@@ -21,7 +21,7 @@
 gmp_randstate_t state; 
 
 
-void Mont_Exp_32(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
+void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 {
 	/*************************************************
 		description:使用 蒙哥马利算法 计算 rop = base^exp mod N
@@ -56,14 +56,14 @@ void Mont_Exp_32(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 	mpz_setbit(K, 2 * rbit);	
 	mpz_mod(K, K, N);	//K = 2^(2*rbit) mod N
 
-	Mont_Pro_32(P, K, base, N, N_1);	//将base转化为蒙哥马利数 P
-	Mont_Pro_32(R, K, temp, N, N_1);	//将  1 转化为蒙哥马利数 R
+	MontPro1(P, K, base, N, N_1);	//将base转化为蒙哥马利数 P
+	MontPro1(R, K, temp, N, N_1);	//将  1 转化为蒙哥马利数 R
 	for (index = 0; index < ebit; index++) {
 		if (mpz_tstbit(exp, index) == 1)
-			Mont_Pro_32(R, R, P, N, N_1);	//R = R*P mod N
-		Mont_Pro_32(P, P, P, N, N_1);	//P = P*P mod N
+			MontPro1(R, R, P, N, N_1);	//R = R*P mod N
+		MontPro1(P, P, P, N, N_1);	//P = P*P mod N
 	}
-	Mont_Pro_32(rop, temp, R, N, N_1);	//将R转化回实数域
+	MontPro1(rop, temp, R, N, N_1);	//将R转化回实数域
 
 #ifdef MONT_CHECK
 	/*
@@ -84,10 +84,10 @@ void Mont_Exp_32(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 	mpz_clears(K, P, R, temp, N_inv, b, NULL);	//销毁mpz大数变量
 }
 
-void Mont_Pro_32(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_limb_t N_1)
+void MontPro1(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_limb_t N_1)
 {
 	/*************************************************
-	description:使用 REDC 计算 x*y*r^(-1) mod N
+	description:使用 32位精度 REDC 计算 x*y*r^(-1) mod N
 	inputParam :
 				x, y	操作数1, 2, 假定为蒙哥马利数
 				N		模数
@@ -120,92 +120,17 @@ void Mont_Pro_32(mpz_t T, const mpz_t x, const mpz_t y, const mpz_t N, const mp_
 	mpz_clear(t);
 }
 
-void Bin_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
+void MontPro2(mpz_t T, const mpz_t x, const mpz_t y, const  mpz_t N, const mp_limb_t N_1)
 {
 	/*************************************************
-		description:使用 模重复平方法 计算 base^exp mod N
+		description:使用 mpn 底层函数优化的REDC算法
 		inputParam :
-					base	底数
-					exp		指数
+					x, y	操作数1, 2, 假定为蒙哥马利数
 					N		模数
+					N_1		预计算的 -N^(-1) mod b
 		outputParam:
 					rop		运算结果
 	*************************************************/
-	int i;
-	mpz_set_ui(rop, 1);	//rop = 1
-	for (i = mpz_sizeinbase(exp, 2) - 1; i >= 0; i--) {
-		mpz_mul(rop, rop, rop);	//z  =z^2 
-		if (mpz_tstbit(exp, i) == 1) {	//exp[i] == 1	
-			mpz_mul(rop, rop, base);	//rop = rop*base
-		}
-		mpz_mod(rop, rop, N);	//rop = rop mod N
-	}
-}
-
-void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t mod)
-{
-	mpz_t K, P, R, temp;
-	mp_bitcnt_t index;
-	unsigned int k = mpz_sizeinbase(mod, 2);
-	mpz_inits(K, P, R, temp, NULL);
-	mpz_set_ui(temp, 1);
-	mpz_setbit(K, 2 * k);
-	mpz_mod(K, K, mod);
-	Mont_Pro(P, K, base, mod);
-	Mont_Pro(R, K, temp, mod);
-	for (index = 0; index < k; index++) {
-		if (mpz_tstbit(exp, index) == 1)
-			Mont_Pro(R, R, P, mod);
-		Mont_Pro(P, P, P, mod);
-	}
-	Mont_Pro(rop, temp, R, mod);
-	////test code
-	//mpz_powm(temp, base, exp, mod);
-	//if (mpz_cmp(temp, rop) != 0) {
-	//	gmp_printf("r1 = %Zx\n", rop);
-	//	gmp_printf("r2 = %Zx", temp);
-	//	getchar();
-	//}
-	////test code
-	mpz_clears(K, P, R, temp, NULL);
-}
-
-void Mont_Pro(mpz_t t, const mpz_t x, const mpz_t y, const mpz_t mod)	//Montgomery Product t = MontMul(x, y, mod)
-{
-	/*************************************************
-		description:使用 模重复平方法 计算 base^exp mod N
-		inputParam :
-					base	底数
-					exp		指数
-					N		模数
-		outputParam:
-					rop		运算结果
-	*************************************************/
-	mpz_t z;
-	mp_bitcnt_t index;
-	mpz_init(z);
-	unsigned int n = mpz_sizeinbase(mod, 2);
-	mpz_set_ui(z, 0);
-	for (index = 0; index < n; index++) {
-		if (mpz_tstbit(x, index) == 1)	//Z = Z + Xi*Y
-			mpz_add(z, z, y);
-		if (mpz_odd_p(z) == true)	//if Z is odd
-			mpz_add(z, z, mod);		//then Z = Z + M
-		mpz_tdiv_q_2exp(z, z, 1);	//Z = Z / 2 (rshift 1 bit)
-	}
-	if (mpz_cmp(z, mod) > 0)
-		mpz_sub(z, z, mod);
-	mpz_set(t, z);
-	mpz_clear(z);
-}
-
-void MontMulti(mpz_t T, const mpz_t x, const mpz_t y, const  mpz_t N, const mp_limb_t N_1)
-{
-	/*
-	功能：计算x和y的蒙哥马利乘积，结果保存在T中，其中 0<=x，y<N
-	N：模
-	N_1:满足N*N_1=-1(mod 2^32)的整数
-	*/
 
 	int i;
 	mp_limb_t num, carry, res[MONT_MAX] = { 0 };
@@ -232,50 +157,26 @@ void MontMulti(mpz_t T, const mpz_t x, const mpz_t y, const  mpz_t N, const mp_l
 	mpz_import(T, N->_mp_size, -1, sizeof(mp_limb_t), 0, 0,temp);//将得到的结果保存在T中
 }
 
-void Mont_Exp_o(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
+void Bin_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 {
-	/*
-	功能：利用蒙哥马利模乘，计算base^exp(mod N)，结果保存在rop中
-	*/
-	mp_limb_t N_1;
-	mpz_t K, P, R, temp, N_inv, b;
-	mp_bitcnt_t index;
-	unsigned int bitnum = mpz_sizeinbase(exp, 2);
-	unsigned int rbit = N->_mp_size*MONTBITS;//蒙哥马利中r的选择是和模的位数相关的，r=2^rbit。此处并不要求N一定是1024比特，1023，1022等，得到的rbit值都是一样的
-	mpz_inits(K, P, R, temp, N_inv, R, NULL);
-
-	mpz_setbit(b, MONTBITS);	//b = 2^32
-	mpz_invert(N_inv, N, b);//
-	mpz_sub(N_inv, b, N_inv);
-	N_1 = *(N_inv->_mp_d);	//N*N_1 =-1 (mod 2^32)
-
-	mpz_set_ui(temp, 1);
-	mpz_setbit(K, 2 * rbit);//K=r^2
-	mpz_mod(K, K, N);//保证0<=K<N
-
-	MontMulti(P, K, base, N, N_1);//将base变成蒙哥马利数，P=K*base*r^-1=r^2*base*r^-1=base*r(mod N)，所以大家直接计算base<<rbit(modN)会更快一点
-	MontMulti(R, K, temp, N, N_1);//将1变成蒙哥马利数，R==r^2*1*r^-1=r(mod N),所以大家直接计算1<<rbit(modN)会更快一点
-	for (index = 0; index < bitnum; index++) {
-		if (mpz_tstbit(exp, index) == 1)
-			MontMulti(R, R, P, N, N_1);
-		MontMulti(P, P, P, N, N_1);
+	/*************************************************
+		description:使用 模重复平方法 计算 base^exp mod N
+		inputParam :
+					base	底数
+					exp		指数
+					N		模数
+		outputParam:
+					rop		运算结果
+	*************************************************/
+	int i;
+	mpz_set_ui(rop, 1);	//rop = 1
+	for (i = mpz_sizeinbase(exp, 2) - 1; i >= 0; i--) {
+		mpz_mul(rop, rop, rop);	//z  =z^2 
+		if (mpz_tstbit(exp, i) == 1) {	//exp[i] == 1	
+			mpz_mul(rop, rop, base);	//rop = rop*base
+		}
+		mpz_mod(rop, rop, N);	//rop = rop mod N
 	}
-	MontMulti(rop, temp, R, N, N_1);//将R还原成普通整数，rop=1*R*r^-1=base^exp(mod N)
-	
-	//test code,将结果和库函数进行对比
-	/*mpz_powm(temp, base, exp, N);
-	if (mpz_cmp(temp, rop) != 0) {
-		gmp_printf("r1 = %Zx\n", rop);
-		gmp_printf("r2 = %Zx\n", temp);
-		gmp_printf("mod = %Zx\n", N);
-		gmp_printf("base = %Zx\n", base);
-		gmp_printf("exp = %Zx\n", exp);
-		getchar();
-	}
-	*/
-	
-	//test code
-	mpz_clears(K, P, R, temp, N_inv, b, NULL);
 }
 
 void Mont_Test()
@@ -301,7 +202,7 @@ void Mont_Test()
 
 	t1 = clock();
 	for (i = 0; i < TESTCOUNT; i++) {
-		Mont_Exp_32(r1, base, exp, mod);
+		Mont_Exp(r1, base, exp, mod);
 	}
 	t2 = clock();
 	printf("32位蒙哥马利算法用时 : \t%lf\n", (double)(t2 - t1) / TESTCOUNT);

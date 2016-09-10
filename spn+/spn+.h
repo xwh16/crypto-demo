@@ -4,22 +4,22 @@
 #define sNum 8
 #define RoundNum 16
 #define SBOX_LENGTH 256
-#define SPN_KEY_LENGTH sNum * sBits + (RoundNum - 1) * 4
+#define SPN_KEY_LENGTH sNum * sBits + (RoundNum ) * 4
 #include "..\gmp.h" 
 
-typedef unsigned long long spn_Text;
-typedef unsigned char mapping;
+typedef unsigned long long spn_Text;	//SPN ˝æ›µ•Œª
+typedef unsigned char mapping;	//S/P∫–”≥…‰
 
-typedef mpz_t MainKey;
-typedef unsigned long long RoundKey;
+typedef mpz_t MainKey;	//÷˜√‹‘ø
+typedef spn_Text RoundKey;	//¬÷√‹‘ø
 typedef struct {
 	MainKey initKey;
 	RoundKey roundKey[RoundNum + 1];
-}Key;
+}Key;	//SPN√‹‘ø
 
-extern Key spn_Key;
-extern mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];
-extern mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];
+Key spn_Key;
+mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];
+mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];
 
 int spn_Init();	//Initialize spn with default S/P Boxes
 
