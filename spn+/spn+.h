@@ -8,7 +8,6 @@
 #include "..\gmp.h" 
 
 typedef unsigned long long spn_Text;	//SPN数据单位
-typedef unsigned char mapping;	//S/P盒映射
 
 typedef mpz_t MainKey;	//主密钥
 typedef spn_Text RoundKey;	//轮密钥
@@ -18,8 +17,8 @@ typedef struct {
 }Key;	//SPN密钥
 
 Key spn_Key;
-mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];
-mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];
+unsigned char spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];
+unsigned char spn_Per[sBits * sNum], spn_rPer[sBits * sNum];
 
 int spn_Init();	//Initialize spn with default S/P Boxes
 
@@ -27,21 +26,21 @@ int spn_SetKey(MainKey input);	//Set the main key for spn
 
 int KeyGen(Key* key);	//Generate round key for spn encryption
 
-int spn_SetSub(mapping* input);	//Set S-Box
+int spn_SetSub(unsigned char* input);	//Set S-Box
 
-int spn_SetPer(mapping* input);	//Set P-Box
+int spn_SetPer(unsigned char* input);	//Set P-Box
 
 spn_Text spn_Encrypt_raw(spn_Text * plain, spn_Text * cypher);
 
 spn_Text spn_Decrypt_raw(spn_Text * plain, spn_Text * cypher);
 
-spn_Text Permutation(spn_Text input, mapping* per);	
+spn_Text Permutation(spn_Text input, unsigned char* per);	
 
-spn_Text Substitution(spn_Text input, mapping* sub);	
+spn_Text Substitution(spn_Text input, unsigned char* sub);	
 
-char SBox(unsigned char input, mapping* sub);
+char SBox(unsigned char input, unsigned char* sub);
 
-void reverse(mapping* original, mapping* reversed, int length);		//Reverse LUT
+void reverse(unsigned char* original, unsigned char* reversed, int length);		//Reverse LUT
 
 int mgen();	//Generate cypher data for testing
 

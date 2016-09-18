@@ -8,11 +8,11 @@
 #include "spn+.h"
 
 Key spn_Key;	//SPN密钥结构
-mapping spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];	//S, P盒置换LUT
-mapping spn_Per[sBits * sNum], spn_rPer[sBits * sNum];	//S, P盒逆置换
+unsigned char spn_Sub[SBOX_LENGTH], spn_rSub[SBOX_LENGTH];	//S, P盒置换LUT
+unsigned char spn_Per[sBits * sNum], spn_rPer[sBits * sNum];	//S, P盒逆置换
 
 //AES-S盒替换
-const mapping spn_Sub_default[256] =
+const unsigned char spn_Sub_default[256] =
 {
 	0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
 	0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -32,7 +32,7 @@ const mapping spn_Sub_default[256] =
 	0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
 //默认的P置换
-const mapping spn_Per_default[sBits * sNum] = 
+const unsigned char spn_Per_default[sBits * sNum] = 
 { 
 	0x08, 0x11, 0x1A, 0x23, 0x2C, 0x35, 0x3E, 0x09,
 	0x10, 0x19, 0x22, 0x2B, 0x34, 0x3D, 0x00, 0x12,
@@ -47,8 +47,8 @@ const mapping spn_Per_default[sBits * sNum] =
 //配置默认的S盒P盒
 int spn_Init()
 {
-	spn_SetSub((mapping*)spn_Sub_default);
-	spn_SetPer((mapping*)spn_Per_default);
+	spn_SetSub((unsigned char*)spn_Sub_default);
+	spn_SetPer((unsigned char*)spn_Per_default);
 	return 0;
 }
 
@@ -77,7 +77,7 @@ int KeyGen(Key* key)
 }
 
 //配置input指向缓冲区为SPN的S盒
-int spn_SetSub(mapping* input)
+int spn_SetSub(unsigned char* input)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
@@ -88,7 +88,7 @@ int spn_SetSub(mapping* input)
 }
 
 //配置input指向缓冲区为SPN的P盒
-int spn_SetPer(mapping* input)
+int spn_SetPer(unsigned char* input)
 {
 	int i;
 	for (i = 0; i < sBits * sNum; i++)
@@ -99,7 +99,7 @@ int spn_SetPer(mapping* input)
 }
 
 //对input的数据进行P盒置换
-spn_Text Permutation(spn_Text input, mapping* per)
+spn_Text Permutation(spn_Text input, unsigned char* per)
 {
 	spn_Text bitmask, output = 0;
 	int i;
@@ -114,7 +114,7 @@ spn_Text Permutation(spn_Text input, mapping* per)
 }
 
 //对input的数据进行S盒替换
-spn_Text Substitution(spn_Text input, mapping* sub)
+spn_Text Substitution(spn_Text input, unsigned char* sub)
 {
 	int i;
 	unsigned char temp;
@@ -128,7 +128,7 @@ spn_Text Substitution(spn_Text input, mapping* sub)
 
 //单字节的S盒替换
 //使用LUT快速实现
-char SBox(unsigned char input, mapping* sub)
+char SBox(unsigned char input, unsigned char* sub)
 {
 	return sub[input];
 }
@@ -136,7 +136,7 @@ char SBox(unsigned char input, mapping* sub)
 //导出origianl中length长度变换的逆变换
 //变换结果写入已分配空间的reversed
 //可用于SPN结构的S盒与P盒
-void reverse(mapping* original, mapping* reversed, int length)
+void reverse(unsigned char* original, unsigned char* reversed, int length)
 {
 	int i;
 	for (i = 0; i < length; i++)
@@ -314,17 +314,17 @@ int mgen()
 	plain = 0;
 	srand((unsigned int)time(NULL));
 	vect = rand() * rand() * rand() % 0xffffffffffffffff;
-	printf("CBC模式初始向量:%llx\n", vect);
-	printf("导出数据文件大小 (mb) : ");
-	scanf("%ld", &size);
-	max = size * 1024 * 1024 * 8 / (sBits * sNum);
-	if ((fp = fopen("test.dat", "wb")) == NULL) {
+	if ((fp = fopen("spn2.dat", "wb")) == NULL) {
 		printf("Error creating file.\n");
 		getchar();
 		return 1;
 	}
+	printf("CBC模式初始向量:%llx\n", vect);
+	printf("导出数据文件大小 (mb) : ");
+	scanf("%ld", &size);
+	max = size * 1024 * 1024 * 8 / (sBits * sNum);
 	for (i = 0; i < max; i++) {
-		printf("\r--------%.1f%%--------", ((double)i/max)*100);
+		//printf("\r--------%.1f%%--------", ((double)i/max)*100);
 		spn_Encrypt_cbc_raw((spn_Text*)&i, &cypher, &vect);
 		fwrite(&cypher, sizeof(spn_Text), 1, fp);
 		vect = cypher;

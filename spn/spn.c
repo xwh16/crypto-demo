@@ -5,23 +5,23 @@
 #include"spn.h"
 
 //默认的S盒替换
-const mapping spn_Sub_default[sBits * sNum] = { 0xe, 0x4, 0xd, 0x1,
+const unsigned char spn_Sub_default[sBits * sNum] = { 0xe, 0x4, 0xd, 0x1,
 												0x2, 0xf, 0xb, 0x8,
 												0x3, 0xa, 0x6, 0xc,
 												0x5, 0x9, 0x0, 0x7 };
 //默认的P置换
-const mapping spn_Per_default[sBits * sNum] = { 0x0, 0x4, 0x8, 0xc,
+const unsigned char spn_Per_default[sBits * sNum] = { 0x0, 0x4, 0x8, 0xc,
 												0x1, 0x5, 0x9, 0xd,
 												0x2, 0x6, 0xa, 0xe,
 												0x3, 0x7, 0xb, 0xf };
 Key spn_Key;
-mapping spn_Sub[sBits * sNum], spn_Per[sBits * sNum],
+unsigned char spn_Sub[sBits * sNum], spn_Per[sBits * sNum],
 		spn_rSub[sBits * sNum], spn_rPer[sBits * sNum];
 
 int spn_Init()
 {
-	spn_SetSub((mapping*)spn_Sub_default);
-	spn_SetPer((mapping*)spn_Per_default);
+	spn_SetSub((unsigned char*)spn_Sub_default);
+	spn_SetPer((unsigned char*)spn_Per_default);
 	return 0;
 }
 
@@ -32,7 +32,7 @@ int spn_SetKey(MainKey input)
 	return 0;
 }
 
-int KeyGen(Key* key)
+static int KeyGen(Key* key)
 {
 	int round;
 	for (round = 0; round <= RoundNum; round++) {
@@ -41,7 +41,7 @@ int KeyGen(Key* key)
 	return 0;
 }
 
-int spn_SetSub(mapping* input)
+int spn_SetSub(unsigned char* input)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
@@ -50,7 +50,7 @@ int spn_SetSub(mapping* input)
 	return 0;
 }
 
-int spn_SetPer(mapping* input)
+int spn_SetPer(unsigned char* input)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
@@ -59,7 +59,7 @@ int spn_SetPer(mapping* input)
 	return 0;
 }
 
-spn_Text Permutation(spn_Text input, mapping* per)
+spn_Text Permutation(spn_Text input, unsigned char* per)
 {
 	unsigned short output = 0;
 	int i, bits;
@@ -73,7 +73,7 @@ spn_Text Permutation(spn_Text input, mapping* per)
 	return output;
 }
 
-spn_Text Substitution(spn_Text input, mapping* sub)
+spn_Text Substitution(spn_Text input, unsigned char* sub)
 {
 	unsigned short output;
 	output = ((SBox((input >> 12) & 0xf, sub) & 0xf) << 12) |
@@ -83,12 +83,12 @@ spn_Text Substitution(spn_Text input, mapping* sub)
 	return output;
 }
 
-mapping SBox(mapping input, mapping* sub)
+unsigned char SBox(unsigned char input, unsigned char* sub)
 {
 	return sub[input];
 }
 
-void reverse(mapping* original, mapping* reversed)
+void reverse(unsigned char* original, unsigned char* reversed)
 {
 	int i;
 	for (i = 0; i < pow(2, sBits); i++)
@@ -145,18 +145,29 @@ void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 
 int mgen()
 {
-	long int i, round;
+	int m;
+	long int i, size, max;
 	FILE *fp;
 	spn_Text plain, cypher, vect;
 	plain = 0;
 	vect = 0x1f56;
-	printf("Data size (mb) : ");
-	scanf("%ld", &round);
-	fp = fopen("test.dat", "wb");
-	for (i = 0; i < round * 1024 * 1024 * 8 / (sBits * sNum); i++) {
+	if ((fp = fopen("spn1.dat", "wb")) == NULL) {
+		printf("Error creating file.\n");
+		getchar();
+		return 1;
+	}
+	printf("CBC模式初始向量:%hx\n", vect);
+	printf("导出数据文件大小 (mb) : ");
+	scanf("%ld", &size);
+	max = size * 1024 * 1024 * 8 / (sBits * sNum);
+	for (i = 0; i < max; i++) {
+		//printf("\r--------%.1f%%--------", ((double)i/max)*100);
 		spn_Encrypt_cbc_raw(&plain, &cypher, &vect);
 		fwrite(&cypher, sizeof(spn_Text), 1, fp);
 		vect = cypher;
 	}
+	printf("\n数据导出完毕.");
+	fclose(fp);
 	getchar();
+	return 0;
 }
