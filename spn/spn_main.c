@@ -35,7 +35,7 @@ int main()
 			spn_SetKey(inputKey);
 			printf("Main Key : %x\n", inputKey);
 			for (i = 0; i <= RoundNum; i++)
-				printf("> roundKey[%d] = %#hx\n", i + 1, spn_Key.roundKey[i]);
+				printf("> roundKey[%d] = %#hx\n", i + 1, spn_Key->roundKey[i]);
 			break;
 		case 2:
 			printf("明文输入 (16 bit): ");

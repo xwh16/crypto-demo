@@ -17,8 +17,6 @@
 #define MONTBITS (8*sizeof(mp_limb_t))
 //假设蒙哥马利中的T=XY的最大位数不超过MONT_MAX个mp_limb_t
 #define MONT_MAX 64
-//随机数状态
-gmp_randstate_t state; 
 
 
 void Mont_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
@@ -181,6 +179,7 @@ void Bin_Exp(mpz_t rop, const mpz_t base, const mpz_t exp, const mpz_t N)
 
 void Mont_Test()
 {
+	gmp_randstate_t state; 
 	gmp_randinit_lc_2exp_size(state, 128);	//设置随机数状态state
 	gmp_randseed_ui(state, (unsigned long)time(NULL));
 	int i;

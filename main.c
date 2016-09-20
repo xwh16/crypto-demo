@@ -11,7 +11,7 @@
 #include "file_system\file_system.h"
 
 RSAPublicKey RSApubKey;
-RSAPrvateKey RSAprvKey;
+RSAPrivateKey RSAprvKey;
 
 int main()
 {

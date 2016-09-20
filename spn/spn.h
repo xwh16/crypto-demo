@@ -13,11 +13,12 @@ typedef struct {
 }Key;
 
 //外部变量声明
-extern Key spn_Key;
-extern unsigned char spn_Sub[sBits * sNum], spn_Per[sBits * sNum], 
-				spn_rSub[sBits * sNum], spn_rPer[sBits * sNum];
+extern Key *spn_Key;
+extern unsigned char *spn_Sub, *spn_Per, *spn_rSub, *spn_rPer;
 
 int spn_Init();
+
+int spn_Destroy();
 
 int spn_SetKey(MainKey input);
 

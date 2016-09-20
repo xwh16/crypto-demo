@@ -14,16 +14,8 @@ gmp_randstate_t state;
 char str1[30] = { "-----BEGIN CERTIFICATE-----" };
 char str2[30] = { "-----END CERTIFICATE-----" };
 
-void randomPrime(mpz_t num, int key_length, int round)
-{
-	int i = 1;
-	do {
-		mpz_urandomb(num, state, key_length);	//生成随机数num
-		mpz_setbit(num, 0);	//设置num为奇数
-	} while (primeTest(num, round) == false);
-}
 
-void rsa_init_key(RSAPublicKey* puk, RSAPrvateKey* prk)
+void rsa_init_key(RSAPublicKey* puk, RSAPrivateKey* prk)
 {
 	mpz_inits(puk->modulus, puk->publicExponent, NULL);
 	mpz_inits(prk->coefficient, prk->exponet1, prk->exponet2,
@@ -31,7 +23,7 @@ void rsa_init_key(RSAPublicKey* puk, RSAPrvateKey* prk)
 		prk->publicExponet, NULL);
 }
 
-void rsa_destroy_key(RSAPublicKey* puk, RSAPrvateKey* prk)
+void rsa_destroy_key(RSAPublicKey* puk, RSAPrivateKey* prk)
 {
 	mpz_clears(puk->modulus, puk->publicExponent, NULL);
 	mpz_clears(prk->coefficient, prk->exponet1, prk->exponet2,
@@ -39,7 +31,7 @@ void rsa_destroy_key(RSAPublicKey* puk, RSAPrvateKey* prk)
 		prk->publicExponet, NULL);
 }
 
-void rsa_generate_key(RSAPublicKey* puk, RSAPrvateKey* prk, int key_length, int round)
+void rsa_generate_key(RSAPublicKey* puk, RSAPrivateKey* prk, int key_length, int round)
 {
 	int plength, qlength;
 	mpz_t totient, buf1, buf2, g;
@@ -47,8 +39,8 @@ void rsa_generate_key(RSAPublicKey* puk, RSAPrvateKey* prk, int key_length, int 
 	plength = (key_length + 1) / 2;
 	qlength = key_length - plength;
 	do {
-		randomPrime(prk->prime1, plength, round);
-		randomPrime(prk->prime2, qlength, round);
+		randomPrime(prk->prime1, plength, round, state);
+		randomPrime(prk->prime2, qlength, round, state);
 		mpz_mul(prk->modulus, prk->prime1, prk->prime2);	//n=p*q
 	} while (mpz_sizeinbase(prk->modulus, 2) != RSA_KEY_LENGTH);
 	mpz_sub_ui(buf1, prk->prime1, 1);	//p-1
@@ -92,7 +84,7 @@ void rsa_encrypt(RSAPublicKey* puk, mpz_t x, mpz_t y, void (*fp) (mpz_t, const m
 	fp(y, x, puk->publicExponent, puk->modulus);
 }
 
-void rsa_decrypt(RSAPrvateKey* prk, mpz_t x, mpz_t y, int chm_flag, void(*fp) (mpz_t, const mpz_t, const mpz_t, const mpz_t))
+void rsa_decrypt(RSAPrivateKey* prk, mpz_t x, mpz_t y, int chm_flag, void(*fp) (mpz_t, const mpz_t, const mpz_t, const mpz_t))
 {
 	if (chm_flag) {
 		mpz_t m1, m2, h;
@@ -111,62 +103,40 @@ void rsa_decrypt(RSAPrvateKey* prk, mpz_t x, mpz_t y, int chm_flag, void(*fp) (m
 	}
 }
 
-int rsa_cer_gen(char* pubs, char* prvs, RSAPublicKey* puk, RSAPrvateKey* prk)
+int rsa_cer_gen(FILE* pubs, FILE* prvs, RSAPublicKey* puk, RSAPrivateKey* prk)
 {
-	FILE *fp;
-	if ((fp = fopen(pubs, "wb")) == NULL)
-		return 1;
-	fprintf(fp, str1);
-	if (mpz_out_raw(fp, puk->publicExponent) == 0) {
-		fclose(fp);
+	//写入公钥数据
+	fprintf(pubs, str1);
+	if (mpz_out_raw(pubs, puk->publicExponent) == 0) {
 		return 2;
 	}
-	if (mpz_out_raw(fp, puk->modulus) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(pubs, puk->modulus) == 0) {
 		return 2;
 	}
-	fprintf(fp, str2);
-	fclose(fp);
-	if ((fp = fopen(prvs, "wb")) == NULL) {
-		printf("Error creating %s", prvs);
-		getchar();
-		return 1;
-	}
-	fprintf(fp, str1);
-	if (mpz_out_raw(fp, prk->privateExponet) == 0) {
-		fclose(fp);
+	fprintf(pubs, str2);
+	//写入公钥数据
+
+	//写入私钥数据
+	fprintf(prvs, str1);
+	if (mpz_out_raw(prvs, prk->privateExponet) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->modulus) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->modulus) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->publicExponet) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->publicExponet) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->prime1) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->prime1) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->prime2) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->prime2) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->exponet1) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->exponet1) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->exponet2) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->exponet2) == 0) 
 		return 3;
-	}
-	if (mpz_out_raw(fp, prk->coefficient) == 0) {
-		fclose(fp);
+	if (mpz_out_raw(prvs, prk->coefficient) == 0) 
 		return 3;
-	}
-	fprintf(fp, str2);
-	fclose(fp);
+	fprintf(prvs, str2);
+	//写入私钥数据
+
 	return 0;
 }
 
@@ -188,7 +158,7 @@ int rsa_imp_puk(FILE *fp, RSAPublicKey* puk)
 	return 0;
 }
 
-int rsa_imp_prk(FILE *fp, RSAPrvateKey* prk)
+int rsa_imp_prk(FILE *fp, RSAPrivateKey* prk)
 {
 	char buffer[30];
 	fread(buffer, sizeof(char), 27, fp);
@@ -228,8 +198,7 @@ int rsa_pkcs1_encode(mpz_t message, int bt) {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 1);
 		mpz_setbit(message, RSA_KEY_LENGTH - 31);
 		do {
-			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//生成填充串Pstring
-																							//8-size%8使得Pstring位数为8的倍数
+			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//生成填充串Pstring																					//8-size%8使得Pstring位数为8的倍数
 		} while(mpz_sizeinbase(Pstring, 2) != RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));
 		rsa_pad_check(Pstring, 1);	//使用非0字节替换Pstring中的0字节
 		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 2 * 8);	//左移Pstring空出2个0字节
@@ -312,12 +281,13 @@ int rsa_pad_seek(mpz_t message)
 int rsa_test()
 {
 	int i;
+	FILE *fp1, *fp2;
 	unsigned int op = 1;
 	char buf1[20], buf2[20];
 	clock_t t1, t2;
 	mpz_t plain, cypher, temp;
 	RSAPublicKey RSApubKey;
-	RSAPrvateKey RSAprvKey;
+	RSAPrivateKey RSAprvKey;
 	rsa_init();
 	mpz_inits(plain, cypher, temp, NULL);
 	rsa_init_key(&RSApubKey, &RSAprvKey);
@@ -359,10 +329,24 @@ int rsa_test()
 			printf("输入RSA公/私钥证书文件名:\n");
 			gets(buf1);
 			gets(buf2);
-			if (rsa_cer_gen(buf1, buf2, &RSApubKey, &RSAprvKey))
+			if ((fp1 = fopen(buf1, "wb")) == NULL) {
+				printf("Error creating %s", buf1);
+				getchar();
+				break;
+			}
+			if ((fp2 = fopen(buf2, "wb")) == NULL) {
+				printf("Error creating %s", buf2);
+				fclose(fp1);
+				getchar();
+				break;
+			}
+			if (rsa_cer_gen(fp1, fp2, &RSApubKey, &RSAprvKey))
 				printf("证书写入错误.\n");
 			else
 				printf("证书写入成功.\n");
+			getchar();
+			fclose(fp1);
+			fclose(fp2);
 			break;
 		}
 		case 3: {

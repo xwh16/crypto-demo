@@ -6,6 +6,15 @@
 #include "..\gmp.h"
 #include "ntheorem.h"
 
+void randomPrime(mpz_t num, int key_length, int round, gmp_randstate_t state)
+{
+	int i = 1;
+	do {
+		mpz_urandomb(num, state, key_length);	//生成随机数num
+		mpz_setbit(num, 0);	//设置num为奇数
+	} while (primeTest(num, round) == false);
+}
+
 void gcd(mpz_t rop, mpz_t num1, mpz_t num2)
 {
 	mpz_t r0, r1, q, temp;

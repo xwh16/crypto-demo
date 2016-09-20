@@ -4,5 +4,5 @@
 
 int file_system();
 int file_encrypt(RSAPublicKey* RSApubKey);
-int file_decrypt(RSAPrvateKey* RSAprvKey);
+int file_decrypt(RSAPrivateKey* RSAprvKey);
 void file_init_session(MainKey sessionKey, spn_Text * initVect);

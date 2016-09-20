@@ -19,15 +19,13 @@ typedef struct {
 	mpz_t exponet1;
 	mpz_t exponet2;
 	mpz_t coefficient;
-} RSAPrvateKey;
+} RSAPrivateKey;
 
-void randomPrime(mpz_t num, int key_length, int round);
+void rsa_generate_key(RSAPublicKey * puk, RSAPrivateKey * prk, int key_length, int round);
 
-void rsa_generate_key(RSAPublicKey * puk, RSAPrvateKey * prk, int key_length, int round);
+void rsa_init_key(RSAPublicKey * puk, RSAPrivateKey * prk);
 
-void rsa_init_key(RSAPublicKey * puk, RSAPrvateKey * prk);
-
-void rsa_destroy_key(RSAPublicKey * puk, RSAPrvateKey * prk);
+void rsa_destroy_key(RSAPublicKey * puk, RSAPrivateKey * prk);
 
 void rsa_init();
 
@@ -35,13 +33,13 @@ void rsa_quit();
 
 void rsa_encrypt(RSAPublicKey* puk, mpz_t x, mpz_t y, void(*fp) (mpz_t, const mpz_t, const mpz_t, const mpz_t));
 
-void rsa_decrypt(RSAPrvateKey* prk, mpz_t x, mpz_t y, int chm_flag, void(*fp) (mpz_t, const mpz_t, const mpz_t, const mpz_t));
+void rsa_decrypt(RSAPrivateKey* prk, mpz_t x, mpz_t y, int chm_flag, void(*fp) (mpz_t, const mpz_t, const mpz_t, const mpz_t));
 
-int rsa_cer_gen(char * pubs, char * prvs, RSAPublicKey * puk, RSAPrvateKey * prk);
+int rsa_cer_gen(FILE* pubs, FILE* prvs, RSAPublicKey* puk, RSAPrivateKey* prk);
 
 int rsa_imp_puk(FILE *fp, RSAPublicKey * puk);
 
-int rsa_imp_prk(FILE *fp, RSAPrvateKey * prk);
+int rsa_imp_prk(FILE *fp, RSAPrivateKey * prk);
 
 int rsa_pkcs1_encode(mpz_t message, int bt);
 

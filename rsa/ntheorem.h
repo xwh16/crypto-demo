@@ -1,5 +1,7 @@
 #pragma once
 
+void randomPrime(mpz_t num, int key_length, int round, gmp_randstate_t state);
+
 void gcd(mpz_t rop, mpz_t num1, mpz_t num2);
 
 bool Mul_Invert(mpz_t rop, mpz_t num, mpz_t mod);

@@ -89,7 +89,7 @@ int file_encrypt(RSAPublicKey *RSApubKey)
     mpz_clears(plain, cypher, temp, sessionKey, sessionInfo, RSAcypher, NULL);
 }
 
-int file_decrypt(RSAPrvateKey *RSAprvKey)
+int file_decrypt(RSAPrivateKey *RSAprvKey)
 {
     /******************************************
 	descripiton:使用CBC工作模式的SPN+网络解密文件
@@ -165,7 +165,7 @@ int file_system()
     clock_t t1, t2;
     mpz_t plain, cypher, temp;
     RSAPublicKey RSApubKey;
-    RSAPrvateKey RSAprvKey;
+    RSAPrivateKey RSAprvKey;
     FILE *fp1;
     spn_Text initVect;
     mpz_inits(plain, cypher, temp, NULL);
