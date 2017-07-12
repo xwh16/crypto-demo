@@ -335,8 +335,29 @@ int mgen()
 	return 0;
 }
 
+void LoadLUT(FILE *fp, char *buffer, int length)
+{
+	int i;
+	for (i = 0; i < length; i++){
+		fscanf(fp, "%d\t", buffer+i);
+	}
+}
+
+void PrintLUT(char *buffer, int length)
+{
+	int i, j; 
+	for (i = 0; i < length; i++) {
+		printf("%d\t", *(buffer+i));
+		if (((i + 1) % 8 == 0) && (i != 0))
+			printf("\n");
+	}
+}
+
 int spn_test()
 {
+	FILE *fp;
+	char *buffer;
+	char filename[20];
 	int i, op = 1;
 	MainKey inputKey;
 	spn_Text plain, cypher;
@@ -349,10 +370,12 @@ int spn_test()
 		printf("1.随机生成SPN主密钥 %d bit\n", SPN_KEY_LENGTH);
 		printf("2.使用SPN 加密\n");
 		printf("3.导出测试文件\n");
+		printf("4.替换S盒\n");
+		printf("5.替换P盒\n");
 		printf("0.返回上级菜单\n");
 		scanf("%d", &op);
 		getchar();
-		if (op > 3) {
+		if (op > 6) {
 			printf("错误操作项.\n");
 			getchar();
 			continue;
@@ -380,6 +403,32 @@ int spn_test()
 		case 3:
 			mgen();
 			break;
+		case 4:
+			printf("导入S盒文件:");
+			gets(filename);
+			if ((fp = fopen(filename, "rb")) == NULL) {
+				printf("打开%s失败.\n", filename);
+				getchar();
+				break;
+			}
+			buffer = malloc(sizeof(char) * sBits * sNum);
+			LoadLUT(fp, buffer, sBits * sNum);
+			PrintLUT(buffer, sBits * sNum);
+			spn_SetSub(buffer);
+			fclose(fp);
+		case 5:
+			printf("导入P盒文件:");
+			gets(filename);
+			if ((fp = fopen(filename, "rb")) == NULL) {
+				printf("打开%s失败.\n", filename);
+				getchar();
+				break;
+			}
+			buffer = malloc(sizeof(char) * sBits * sNum);
+			LoadLUT(fp, buffer, sBits * sNum);
+			PrintLUT(buffer, sBits * sNum);
+			spn_SetPer(buffer);
+			fclose(fp);
 		}
 		getchar();
 	}

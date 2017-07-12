@@ -32,6 +32,10 @@ spn_Text spn_Encrypt_raw(spn_Text * plain, spn_Text * cypher);
 
 spn_Text spn_Decrypt_raw(spn_Text * plain, spn_Text * cypher);
 
+spn_Text spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect);
+
+spn_Text spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect);
+
 int mgen();
 
 spn_Text Permutation(spn_Text input, unsigned char* per);	//置换操作

@@ -18,12 +18,19 @@ void file_init_session(MainKey sessionKey, spn_Text *initVect)
 				initVect	CBC模式初始向量
 	******************************************/
     gmp_randstate_t state;
-    mpz_inits(sessionKey, initVect, NULL);
+    mpz_init(sessionKey);
     srand((unsigned int)time(NULL));
     gmp_randinit_lc_2exp_size(state, 128);
     gmp_randseed_ui(state, (unsigned long)time(NULL));
     mpz_urandomb(sessionKey, state, SPN_KEY_LENGTH);	   //生成主密钥sessionKey
     *initVect = rand() * rand() * rand() % 0xffffffffffffffff; //生成初始向量initVect
+	mpz_clear(sessionKey);
+}
+
+void file_destroy_session(MainKey sessionKey, spn_Text *initVect)
+{
+	*initVect = 0;
+	mpz_clear(sessionKey);
 }
 
 int file_encrypt(RSAPublicKey *RSApubKey)
@@ -44,7 +51,7 @@ int file_encrypt(RSAPublicKey *RSApubKey)
     spn_Text initVect;
     MainKey sessionKey;
     mpz_t sessionInfo, RSAcypher;
-    mpz_inits(plain, cypher, temp, sessionKey, RSAcypher, sessionInfo, NULL);
+    mpz_inits(plain, cypher, temp, RSAcypher, sessionInfo, NULL);
     //打开文件
     {
 	printf("输入使用SPN+加密的文件名:");
@@ -86,7 +93,8 @@ int file_encrypt(RSAPublicKey *RSApubKey)
     //释放文件指针
     fclose(fp2);
     fclose(fp1);
-    mpz_clears(plain, cypher, temp, sessionKey, sessionInfo, RSAcypher, NULL);
+	file_destroy_session(sessionKey, &initVect);
+    mpz_clears(plain, cypher, temp, sessionInfo, RSAcypher, NULL);
 }
 
 int file_decrypt(RSAPrivateKey *RSAprvKey)

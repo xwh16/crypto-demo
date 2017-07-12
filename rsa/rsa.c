@@ -196,18 +196,18 @@ int rsa_pkcs1_encode(mpz_t message, int bt) {
 	switch (bt) {
 	case 2: {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 1);
-		mpz_setbit(message, RSA_KEY_LENGTH - 31);
+		mpz_setbit(message, RSA_KEY_LENGTH - 15);
 		do {
-			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));	//生成填充串Pstring																					//8-size%8使得Pstring位数为8的倍数
-		} while(mpz_sizeinbase(Pstring, 2) != RSA_KEY_LENGTH - 3 * 16 - size - (8 - size % 8));
+			mpz_urandomb(Pstring, state, RSA_KEY_LENGTH - 3 * 8 - size - (8 - size % 8));	//生成填充串Pstring																					//8-size%8使得Pstring位数为8的倍数
+		} while(mpz_sizeinbase(Pstring, 2) != RSA_KEY_LENGTH - 3 * 8 - size - (8 - size % 8));
 		rsa_pad_check(Pstring, 1);	//使用非0字节替换Pstring中的0字节
-		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 2 * 8);	//左移Pstring空出2个0字节
+		mpz_mul_2exp(Pstring, Pstring, size + (8 - size % 8) + 8);	//左移Pstring空出2个0字节
 		mpz_xor(message, message, Pstring);
 		break;
 	}
 	case 1: {
 		mpz_clrbit(message, RSA_KEY_LENGTH - 1);
-		mpz_setbit(message, RSA_KEY_LENGTH - 32);
+		mpz_setbit(message, RSA_KEY_LENGTH - 16);
 		break;
 	}
 	case 0: {
@@ -225,14 +225,14 @@ int rsa_pkcs1_decode(mpz_t message)
 	mpz_t Pstring;
 	mpz_inits(Pstring, NULL);
 	//BT = 2
-	if (mpz_tstbit(message, RSA_KEY_LENGTH - 31)) {
-		mpz_clrbit(message, RSA_KEY_LENGTH - 31);
+	if (mpz_tstbit(message, RSA_KEY_LENGTH - 15)) {
+		mpz_clrbit(message, RSA_KEY_LENGTH - 15);
 		pos = rsa_pad_seek(message);
-		mpz_tdiv_q_2exp(Pstring, message, RSA_KEY_LENGTH - 8 * (3 + pos));
+		mpz_tdiv_q_2exp(Pstring, message, RSA_KEY_LENGTH - 8 * (1 + pos));
 		if (rsa_pad_check(Pstring, 0))
 			return 1;
 		else {
-			mpz_mul_2exp(Pstring, Pstring, RSA_KEY_LENGTH - 8 * (3 + pos));
+			mpz_mul_2exp(Pstring, Pstring, RSA_KEY_LENGTH - 8 * (1 + pos));
 			mpz_xor(message, message, Pstring);
 		}
 	}

@@ -52,4 +52,8 @@ int spn_Encrypt_cbc(FILE *fp, FILE *efp, MainKey sessionKey, spn_Text *initVect)
 
 int spn_Decrypt_cbc(FILE *fp, FILE *dfp, MainKey sessionKey, spn_Text *initVect);
 
+void LoadLUT(FILE *fp, char *buffer, int length);
+
+void PrintLUT(char *buffer, int length);
+
 int spn_test();

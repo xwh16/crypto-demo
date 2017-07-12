@@ -5,6 +5,5 @@
 *.txt
 *.dat
 *.exe
-*.exe
-*.exe
+/.vscode
 *.exe

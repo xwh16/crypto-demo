@@ -156,14 +156,14 @@ spn_Text spn_Decrypt_raw(spn_Text *plain, spn_Text *cypher)
 	return temp;
 }
 
-void spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
+spn_Text spn_Encrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
 	temp = *plain ^ *vect;
 	spn_Encrypt_raw(&temp, cypher);
 }
 
-void spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
+spn_Text spn_Decrypt_cbc_raw(spn_Text *plain, spn_Text *cypher, spn_Text *vect)
 {
 	spn_Text temp;
 	spn_Decrypt_raw(&temp, cypher);

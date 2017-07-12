@@ -293,7 +293,7 @@ void findKey_linear(chain linear_chain)
 	}
 	t2 = clock();
 	for (i = 0; i <= RoundNum; i++)
-		printf("...roundKey[%d] = %#x\n", i + 1, spn_Key.roundKey[i]);
+		printf("...roundKey[%d] = %#x\n", i + 1, spn_Key->roundKey[i]);
 	for (i = linear_chain.keyNum - 1; i >= 0; i--) {
 		printf("k%d = %x\t", 4 - mark[i], (maxkey >> i * 4) & 0xf);
 	}
